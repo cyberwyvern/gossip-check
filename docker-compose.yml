@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+
+  webscraper: 
+    image: gossipcheck.azurecr.io/webscraper
+    container_name: webscraper
+    environment:
+      ScraperServiceConfig__ApiKey: ${SCRAPER_SERVICE_APIKEY}
+      NLUServiceConfig__ApiKey: ${NLU_SERVICE_APIKEY}
+    ports:
+      - "5001:80"
+
+  ai: 
+    image: gossipcheck.azurecr.io/stance-detection-ai
+    container_name: stance-detection-ai
+    ports:
+      - "5002:80"
