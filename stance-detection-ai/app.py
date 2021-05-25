@@ -10,8 +10,8 @@ from ai.util import FNCData, pipeline_test
 app = Flask(__name__)
 cors = CORS(app, resources={r"/*": {"origins": "*"}})
 
-model_checkpoint_path = "src/checkpoint/model.h5"
-vectorizer_checkpoint_path = "src/checkpoint/vectorizer.dump"
+model_checkpoint_path = "checkpoint/model.h5"
+vectorizer_checkpoint_path = "checkpoint/vectorizer.dump"
 
 dump_file = open(vectorizer_checkpoint_path, 'rb')
 (bow_vectorizer, tfreq_vectorizer, tfidf_vectorizer) = pickle.load(dump_file)

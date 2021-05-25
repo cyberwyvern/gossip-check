@@ -7,17 +7,17 @@ from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.utils import plot_model
 
-from ml.util import *
+from ai.util import *
 
 def train():
-    file_train_instances = "src/datasets/train_stances.csv"
-    file_train_bodies = "src/datasets/train_bodies.csv"
-    file_test_instances = "src/datasets/test_stances_unlabeled.csv"
-    file_test_bodies = "src/datasets/test_bodies.csv"
+    file_train_instances = "datasets/train_stances.csv"
+    file_train_bodies = "datasets/train_bodies.csv"
+    file_test_instances = "datasets/test_stances_unlabeled.csv"
+    file_test_bodies = "datasets/test_bodies.csv"
 
-    model_checkpoint_path = "src/checkpoint/model.h5"
-    vectorizer_checkpoint_path = "src/checkpoint/vectorizer.dump"
-    img_checkpoint_path = "src/checkpoint/model.png"
+    model_checkpoint_path = "checkpoint/model.h5"
+    vectorizer_checkpoint_path = "checkpoint/vectorizer.dump"
+    img_checkpoint_path = "checkpoint/model.png"
 
     raw_train = FNCData(file_train_instances, file_train_bodies)
     raw_test = FNCData(file_test_instances, file_test_bodies)
