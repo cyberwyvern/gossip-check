@@ -1,0 +1,12 @@
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.DAO\bin\Debug\netcoreapp3.1\GossipCheck.DAO.deps.json
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.DAO\bin\Debug\netcoreapp3.1\GossipCheck.DAO.dll
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.DAO\bin\Debug\netcoreapp3.1\GossipCheck.DAO.pdb
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.DAO\obj\Debug\netcoreapp3.1\GossipCheck.DAO.AssemblyInfoInputs.cache
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.DAO\obj\Debug\netcoreapp3.1\GossipCheck.DAO.AssemblyInfo.cs
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.DAO\obj\Debug\netcoreapp3.1\GossipCheck.DAO.csproj.CoreCompileInputs.cache
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.DAO\obj\Debug\netcoreapp3.1\GossipCheck.DAO.dll
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.DAO\obj\Debug\netcoreapp3.1\GossipCheck.DAO.pdb
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.DAO\bin\Debug\netcoreapp3.1\GossipCheck.DAO.runtimeconfig.json
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.DAO\bin\Debug\netcoreapp3.1\GossipCheck.DAO.runtimeconfig.dev.json
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.DAO\obj\Debug\netcoreapp3.1\GossipCheck.DAO.genruntimeconfig.cache
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.DAO\obj\Debug\netcoreapp3.1\GossipCheck.DAO.csprojAssemblyReference.cache

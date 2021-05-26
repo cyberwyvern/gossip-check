@@ -1,0 +1,12 @@
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.BLL\bin\Debug\netcoreapp3.1\GossipCheck.BLL.deps.json
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.BLL\bin\Debug\netcoreapp3.1\GossipCheck.BLL.dll
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.BLL\bin\Debug\netcoreapp3.1\GossipCheck.BLL.pdb
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.BLL\bin\Debug\netcoreapp3.1\GossipCheck.DAO.dll
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.BLL\bin\Debug\netcoreapp3.1\GossipCheck.DAO.pdb
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.BLL\obj\Debug\netcoreapp3.1\GossipCheck.BLL.csprojAssemblyReference.cache
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.BLL\obj\Debug\netcoreapp3.1\GossipCheck.BLL.AssemblyInfoInputs.cache
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.BLL\obj\Debug\netcoreapp3.1\GossipCheck.BLL.AssemblyInfo.cs
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.BLL\obj\Debug\netcoreapp3.1\GossipCheck.BLL.csproj.CoreCompileInputs.cache
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.BLL\obj\Debug\netcoreapp3.1\GossipCheck.BLL.csproj.CopyComplete
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.BLL\obj\Debug\netcoreapp3.1\GossipCheck.BLL.dll
+C:\Users\karpliuk\source\repos\gossip-check\webapi\GossipCheck.BLL\obj\Debug\netcoreapp3.1\GossipCheck.BLL.pdb
