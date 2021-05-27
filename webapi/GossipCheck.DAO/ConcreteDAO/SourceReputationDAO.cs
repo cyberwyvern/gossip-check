@@ -15,8 +15,9 @@ namespace GossipCheck.DAO.ConcreteDAO
         public IEnumerable<SourceReputation> GetLatestByUrls(IEnumerable<string> urls)
         {
             return this.table
+                .Where(x => urls.Contains(x.BaseUrl))
+                .AsEnumerable()
                 .GroupBy(x => x.BaseUrl)
-                .Where(x => urls.Contains(x.Key))
                 .Select(x => x.OrderByDescending(x => x.Date).First())
                 .ToList();
         }

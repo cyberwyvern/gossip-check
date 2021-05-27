@@ -14,4 +14,4 @@ services:
     image: gossipcheck.azurecr.io/stance-detection-ai
     container_name: stance-detection-ai
     ports:
-      - "5002:80"
+      - "5002:5000"

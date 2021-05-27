@@ -31,7 +31,7 @@ namespace GossipCheck.BLL
                 .ToDictionary(x => x.BaseUrl, x => x.Reputation);
 
             return sourceStances
-                .Select(x => sourceReputations[GetBaseUrl(x.Key)] * stanceFactor[x.Value])
+                .Select(x => sourceReputations.GetValueOrDefault(GetBaseUrl(x.Key)) * stanceFactor[x.Value])
                 .Sum() + 1 / 2;
         }
 

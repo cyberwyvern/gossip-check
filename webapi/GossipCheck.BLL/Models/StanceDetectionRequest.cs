@@ -1,9 +1,11 @@
-﻿namespace GossipCheck.BLL.Models
+﻿using System.Collections.Generic;
+
+namespace GossipCheck.BLL.Models
 {
     internal class StanceDetectionRequest
     {
         public string Headline { get; set; }
 
-        public string Body { get; set; }
+        public IEnumerable<KeyValuePair<string, string>> Bodies { get; set; }
     }
 }

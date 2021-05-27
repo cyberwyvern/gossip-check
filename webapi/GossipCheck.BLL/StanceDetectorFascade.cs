@@ -4,6 +4,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -30,23 +31,21 @@ namespace GossipCheck.BLL
                 Keywords = keywordsResponse.Keywords
             });
 
-            var result = new Dictionary<string, Stance>();
-            var headline = string.Join(' ', keywordsResponse.Keywords);
-            foreach (var article in articlesResponse.Articles)
+            var requestObject = new StanceDetectionRequest
             {
-                var stanceResponse = await GetStance(new StanceDetectionRequest
-                {
-                    Headline = headline,
-                    Body = article.Summary
-                });
+                Headline = string.Join(' ', keywordsResponse.Keywords),
+                Bodies = articlesResponse.Articles
+                    .GroupBy(x => x.Link)
+                    .Select(x => x.First())
+                    .ToDictionary(x => x.Link, x => x.Summary)
+            };
 
-                result.Add(article.Link, stanceResponse.Stance);
-            }
+            var result = await GetStances(requestObject);
 
             return result;
         }
 
-        private async Task<StanceDetectionResponse> GetStance(StanceDetectionRequest requestObj)
+        private async Task<IEnumerable<KeyValuePair<string, Stance>>> GetStances(StanceDetectionRequest requestObj)
         {
             var request = new HttpRequestMessage
             {
@@ -58,7 +57,7 @@ namespace GossipCheck.BLL
             using var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
             var body = await response.Content.ReadAsStringAsync();
-            var responseObj = JsonConvert.DeserializeObject<StanceDetectionResponse>(body);
+            var responseObj = JsonConvert.DeserializeObject<Dictionary<string, Stance>>(body);
 
             return responseObj;
         }
