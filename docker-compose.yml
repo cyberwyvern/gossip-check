@@ -15,3 +15,12 @@ services:
     container_name: stance-detection-ai
     ports:
       - "5002:5000"
+
+  webapi: 
+    image: gossipcheck.azurecr.io/webapi
+    container_name: webapi
+    environment:
+      ScraperServiceConfig__ApiKey: ${SCRAPER_SERVICE_APIKEY}
+      NLUServiceConfig__ApiKey: ${NLU_SERVICE_APIKEY}
+    ports:
+      - "5003:80"
