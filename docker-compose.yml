@@ -20,7 +20,8 @@ services:
     image: gossipcheck.azurecr.io/webapi
     container_name: webapi
     environment:
-      ScraperServiceConfig__ApiKey: ${SCRAPER_SERVICE_APIKEY}
-      NLUServiceConfig__ApiKey: ${NLU_SERVICE_APIKEY}
+      StanceDetector__WebScraperUrl: http://localhost:5001,
+      StanceDetector__StanceDetectionAiUrl: http://localhost:5002
+      ConnectionStrings__DBconnection: ${DB_CONNECTION}
     ports:
       - "5003:80"
