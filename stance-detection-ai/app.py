@@ -20,10 +20,15 @@ model = tf.keras.models.load_model(model_checkpoint_path)
 
 
 @app.route("/predict", methods=['POST'])
-def foo():
+def predict():
     input = json.loads(request.data)
-    headlines = [{'BodyID':  0, 'Headlines': input['headline']}]
-    bodies = [{'BodyID':  0, 'text': input['body']}]
+
+    bodies = []
+    headlines = []
+    for index, (_, value) in enumerate(input['bodies'].items()):
+        bodies.append({'BodyID': index, 'text': value})
+        headlines.append({'BodyID': index, 'Headlines': input['headline']})
+
     raw_data = FNCData(headlines, bodies)
 
     data = pipeline_test(raw_data,
@@ -31,17 +36,22 @@ def foo():
                          tfreq_vectorizer,
                          tfidf_vectorizer)
 
-    result = model.predict(np.array(data))
-    result = np.argmax(result)
-    result = {
-        0: 'agree',
-        1: 'disagree',
-        2: 'discuss',
-        3: 'unrelated'
-    }[result]
+    prediction = model.predict(np.array(data))
 
-    return f'{{"stance":"{result}"}}'
+    result = {}
+    for index, (key, _) in enumerate(input['bodies'].items()):
+        stance = np.argmax(prediction[index])
+        stance = {
+            0: 'agree',
+            1: 'disagree',
+            2: 'discuss',
+            3: 'unrelated'
+        }[stance]
+
+        result[key] = stance
+
+    return json.dumps(result)
 
 
 if __name__ == '__main__':
-    app.run(port=5002)
+    app.run(host='0.0.0.0', port=5000)
