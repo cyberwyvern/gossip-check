@@ -2,7 +2,7 @@ version: "3.9"
 services:
 
   webscraper: 
-    image: gossipcheck.azurecr.io/webscraper
+    image: ${CONTAINER_REGISTRY}/webscraper
     container_name: webscraper
     environment:
       ScraperServiceConfig__ApiKey: ${SCRAPER_SERVICE_APIKEY}
@@ -11,17 +11,32 @@ services:
       - "5001:80"
 
   ai: 
-    image: gossipcheck.azurecr.io/stance-detection-ai
+    image: ${CONTAINER_REGISTRY}/stance-detection-ai
     container_name: stance-detection-ai
     ports:
       - "5002:5000"
 
   webapi: 
-    image: gossipcheck.azurecr.io/webapi
+    image: ${CONTAINER_REGISTRY}/webapi
     container_name: webapi
     environment:
-      StanceDetector__WebScraperUrl: http://localhost:5001,
-      StanceDetector__StanceDetectionAiUrl: http://localhost:5002
+      StanceDetector__WebScraperUrl: http://host.docker.internal:5001
+      StanceDetector__StanceDetectionAiUrl: http://host.docker.internal:5002
       ConnectionStrings__DBconnection: ${DB_CONNECTION}
     ports:
       - "5003:80"
+
+  mssql-server:
+    image: mcr.microsoft.com/mssql/server:latest
+    container_name: mssql-server
+    volumes:
+      - mssql-server-data:/var/opt/mssql
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: ${SQLSERVER_SA_PASSWORD}
+    ports:
+      - "1433:1433"
+
+
+volumes:
+  mssql-server-data:
