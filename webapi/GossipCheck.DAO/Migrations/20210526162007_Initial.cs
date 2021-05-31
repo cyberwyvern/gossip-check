@@ -1,10 +1,14 @@
 ﻿using System;
+using System.IO;
+using System.Linq;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace GossipCheck.DAO.Migrations
 {
     public partial class Initial : Migration
     {
+        private const string DefaultReputationsFile = @"DefaultData\defaultRep.csv";
+
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
@@ -21,6 +25,25 @@ namespace GossipCheck.DAO.Migrations
                 {
                     table.PrimaryKey("PK_SourceReputations", x => x.Id);
                 });
+
+            string fullPath = System.Reflection.Assembly.GetExecutingAssembly().Location;
+            string theDirectory = Path.GetDirectoryName(fullPath);
+            object[][] defaultData = File.ReadAllLines(Path.Combine(theDirectory, DefaultReputationsFile))[1..]
+                .Select(x => new object[]
+                {
+                    x.Split(',')[0].Trim(),
+                    DateTime.MinValue,
+                    Convert.ToDouble(x.Split(',')[1].Trim())
+                })
+                .ToArray();
+
+            foreach(var element in defaultData)
+            {
+                migrationBuilder.InsertData(
+                    table: "SourceReputations",
+                    columns: new[] { "BaseUrl", "Date", "Reputation" },
+                    values: element);
+            }
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

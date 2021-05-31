@@ -28,13 +28,13 @@ namespace GossipCheck.BLL
             var sourceReputations = uow.SourceReputations
                 .GetLatestByUrls(sourceStances.Select(x => x.Key))
                 .SoftmaxOnProperty(x => x.Reputation)
-                .ToDictionary(x => x.BaseUrl, x => x.Reputation);
+                .ToDictionary(x => x.BaseUrl.ToLower(), x => x.Reputation);
 
             return sourceStances
                 .Select(x => sourceReputations.GetValueOrDefault(GetBaseUrl(x.Key)) * stanceFactor[x.Value])
                 .Sum() + 1 / 2;
         }
 
-        private string GetBaseUrl(string url) => new Uri(url).GetLeftPart(UriPartial.Authority);
+        private string GetBaseUrl(string url) => new Uri(url).GetLeftPart(UriPartial.Authority).ToLower();
     }
 }
