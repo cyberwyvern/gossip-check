@@ -1,5 +1,5 @@
-using GossipCheck.WebScraper.ConfigurationOptionModels;
-using GossipCheck.WebScraper.Services;
+using GossipCheck.WebScraper.Services.ConfigurationOptionModels;
+using GossipCheck.WebScraper.Services.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -13,6 +13,7 @@ namespace GossipCheck.WebScraper
     {
         private const string ScraperConfigurationSection = "ScraperServiceConfig";
         private const string NLUServiceConfigurationSection = "NLUServiceConfig";
+        private const string MbfcServiceConfigurationSection = "MbfcServiceConfig";
 
         public Startup(IConfiguration configuration)
         {
@@ -23,14 +24,17 @@ namespace GossipCheck.WebScraper
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var scraperConfig = this.Configuration.GetSection(ScraperConfigurationSection);
-            var nluServiceConfig = this.Configuration.GetSection(NLUServiceConfigurationSection);
+            IConfigurationSection scraperConfig = Configuration.GetSection(ScraperConfigurationSection);
+            IConfigurationSection nluServiceConfig = Configuration.GetSection(NLUServiceConfigurationSection);
+            IConfigurationSection mbfcServiceConfig = Configuration.GetSection(MbfcServiceConfigurationSection);
 
             services.AddOptions<ScraperServiceConfig>().Bind(scraperConfig);
             services.AddOptions<NLUServiceConfig>().Bind(nluServiceConfig);
+            services.AddOptions<MbfcServiceConfig>().Bind(mbfcServiceConfig);
 
             services.AddTransient<INLUService, NLUService>();
             services.AddTransient<IWebScraperService, WebScraperService>();
+            services.AddTransient<IMbfcCrawler, MbfcCrawler>();
 
             services.AddControllers().AddJsonOptions(options =>
             {
@@ -44,8 +48,6 @@ namespace GossipCheck.WebScraper
             {
                 app.UseDeveloperExceptionPage();
             }
-
-            //app.UseHttpsRedirection();
 
             app.UseRouting();
 

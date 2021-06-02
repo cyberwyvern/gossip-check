@@ -1,8 +1,8 @@
-﻿using GossipCheck.WebScraper.Models;
+﻿using GossipCheck.WebScraper.Services.Models;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace GossipCheck.WebScraper.Services
+namespace GossipCheck.WebScraper.Services.Services
 {
     public interface IWebScraperService
     {

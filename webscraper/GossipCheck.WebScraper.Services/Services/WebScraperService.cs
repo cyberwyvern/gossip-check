@@ -1,5 +1,5 @@
-﻿using GossipCheck.WebScraper.ConfigurationOptionModels;
-using GossipCheck.WebScraper.Models;
+﻿using GossipCheck.WebScraper.Services.ConfigurationOptionModels;
+using GossipCheck.WebScraper.Services.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
@@ -9,7 +9,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace GossipCheck.WebScraper.Services
+namespace GossipCheck.WebScraper.Services.Services
 {
     public class WebScraperService : IWebScraperService
     {
@@ -22,7 +22,7 @@ namespace GossipCheck.WebScraper.Services
 
         public async Task<IEnumerable<Article>> SearchArticles(Language? language, IEnumerable<string> keywords)
         {
-            var queryStringDict = new Dictionary<string, string>
+            Dictionary<string, string> queryStringDict = new Dictionary<string, string>
             {
                 { "q", HttpUtility.UrlEncode(string.Join(" ", keywords)) },
                 { "media", "True" }
@@ -33,10 +33,10 @@ namespace GossipCheck.WebScraper.Services
                 queryStringDict.Add("lang", LanguageCodes.Codes[language.Value]);
             }
 
-            var query = string.Join("&", queryStringDict.Select(x => $"{x.Key}={x.Value}"));
+            string query = string.Join("&", queryStringDict.Select(x => $"{x.Key}={x.Value}"));
 
-            var client = new HttpClient();
-            var request = new HttpRequestMessage
+            HttpClient client = new HttpClient();
+            HttpRequestMessage request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
                 RequestUri = new Uri($"{config.ServiceUrl}?{query}"),
@@ -47,11 +47,11 @@ namespace GossipCheck.WebScraper.Services
                 },
             };
 
-            using var response = await client.SendAsync(request);
+            using HttpResponseMessage response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            var body = await response.Content.ReadAsStringAsync();
+            string body = await response.Content.ReadAsStringAsync();
 
-            var result = JToken.Parse(body)["articles"]
+            IEnumerable<Article> result = JToken.Parse(body)["articles"]
                 .ToObject<ScraperArticleModel[]>()
                 .Select(x => new Article
                 {

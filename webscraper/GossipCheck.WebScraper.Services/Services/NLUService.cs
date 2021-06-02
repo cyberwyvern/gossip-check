@@ -1,4 +1,4 @@
-﻿using GossipCheck.WebScraper.ConfigurationOptionModels;
+﻿using GossipCheck.WebScraper.Services.ConfigurationOptionModels;
 using IBM.Cloud.SDK.Core.Authentication.Iam;
 using IBM.Watson.NaturalLanguageUnderstanding.v1;
 using IBM.Watson.NaturalLanguageUnderstanding.v1.Model;
@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace GossipCheck.WebScraper.Services
+namespace GossipCheck.WebScraper.Services.Services
 {
     public class NLUService : INLUService
     {
@@ -21,14 +21,14 @@ namespace GossipCheck.WebScraper.Services
         {
             this.config = config.Value;
 
-            var authenticator = new IamAuthenticator(this.config.ApiKey);
+            IamAuthenticator authenticator = new IamAuthenticator(this.config.ApiKey);
             watson = new NaturalLanguageUnderstandingService(ApiVersion, authenticator);
             watson.SetServiceUrl(this.config.ServiceUrl);
         }
 
         public (Language, IEnumerable<string>) ExtractKeywords(string origin)
         {
-            var features = new Features
+            Features features = new Features
             {
                 Keywords = new KeywordsOptions
                 {
@@ -38,14 +38,14 @@ namespace GossipCheck.WebScraper.Services
                 }
             };
 
-            var result = Util.IsUrl(origin)
+            IBM.Cloud.SDK.Core.Http.DetailedResponse<AnalysisResults> result = origin.IsUrl()
                 ? watson.Analyze(features, url: origin)
                 : watson.Analyze(features, text: origin);
 
             if (LanguageCodes.Codes.ContainsValue(result.Result.Language))
             {
-                var language = LanguageCodes.Codes.First(x => x.Value == result.Result.Language).Key;
-                var keywords = result.Result.Keywords.Select(x => x.Text).ToArray();
+                Language language = LanguageCodes.Codes.First(x => x.Value == result.Result.Language).Key;
+                string[] keywords = result.Result.Keywords.Select(x => x.Text).ToArray();
 
                 return (language, keywords);
             }

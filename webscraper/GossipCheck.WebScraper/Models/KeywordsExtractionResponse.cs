@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using GossipCheck.WebScraper.Services;
+using System.Collections.Generic;
 
 namespace GossipCheck.WebScraper.Models
 {

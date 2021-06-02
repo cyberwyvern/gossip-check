@@ -1,4 +1,4 @@
-﻿namespace GossipCheck.WebScraper
+﻿namespace GossipCheck.WebScraper.Services
 {
     public enum Language
     {

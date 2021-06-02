@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace GossipCheck.WebScraper.Models
+namespace GossipCheck.WebScraper.Services.Models
 {
     public class Article
     {

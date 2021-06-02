@@ -1,4 +1,4 @@
-﻿namespace GossipCheck.WebScraper.ConfigurationOptionModels
+﻿namespace GossipCheck.WebScraper.Services.ConfigurationOptionModels
 {
     public class ScraperServiceConfig
     {

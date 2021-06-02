@@ -8,12 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="IBM.Watson.NaturalLanguageUnderstanding.v1" Version="5.1.0" />
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.9" />
+    <Folder Include="Properties\PublishProfiles\" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Properties\PublishProfiles\" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.10.8" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\GossipCheck.WebScraper.Services\GossipCheck.WebScraper.Services.csproj" />
   </ItemGroup>
 
 
