@@ -8,7 +8,7 @@ EXPOSE 443
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
 COPY ["GossipCheck.WebScraper/GossipCheck.WebScraper.csproj", "GossipCheck.WebScraper/"]
-RUN curl https://api.nuget.org/v3/index.json -k
+COPY ["GossipCheck.WebScraper.Services/GossipCheck.WebScraper.Services.csproj", "GossipCheck.WebScraper.Services/"]
 RUN dotnet restore "GossipCheck.WebScraper/GossipCheck.WebScraper.csproj"
 COPY . .
 WORKDIR "/src/GossipCheck.WebScraper"

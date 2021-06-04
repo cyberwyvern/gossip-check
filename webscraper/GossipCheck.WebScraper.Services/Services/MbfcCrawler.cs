@@ -1,4 +1,5 @@
 ﻿using GossipCheck.WebScraper.Services.ConfigurationOptionModels;
+using GossipCheck.WebScraper.Services.Exceptions;
 using GossipCheck.WebScraper.Services.Models;
 using Microsoft.Extensions.Options;
 using System;
@@ -27,37 +28,32 @@ namespace GossipCheck.WebScraper.Services.Services
 
         public async Task<MbfcReport> GetMbfcReport(string url)
         {
-            var source = new Uri(url).GetLeftPart(UriPartial.Authority);
-            var pageUrl = await GetMbfcPageUrl(url);
-            if (pageUrl == null)
+            try
             {
-                return null;
-            }
+                var pageUrl = await GetMbfcPageUrl(url);
+                var reportHtml = await GetMbfcReportHtml(pageUrl);
 
+                var report = RegexMapperHelper.Map<MbfcReport>(reportHtml);
+                report.Source = new Uri(url).GetLeftPart(UriPartial.Authority);
+                report.PageUrl = pageUrl;
+
+                return report;
+            }
+            catch (HttpRequestException)
+            {
+                throw new MbfcRequestException();
+            }
+            catch
+            {
+                throw new MbfcParserException();
+            }
+        }
+
+        private async Task<string> GetMbfcReportHtml(string pageUrl)
+        {
             var response = await client.GetAsync(new Uri(pageUrl));
             response.EnsureSuccessStatusCode();
-            var body = await response.Content.ReadAsStringAsync();
-
-            var name = GetFirstMatch(body, @"<h1.*title.*>(.*?)<\/h1>");
-            var biasRating = GetFirstMatch(body, @"Bias\sRating:.*?>([^<]+?)<");
-            var factualReporting = GetFirstMatch(body, @"Factual\sReporting:.*?>([^<]+?)<");
-            var country = GetFirstMatch(body, @"Country:.*?>([^<]+?)<");
-            var mediaType = GetFirstMatch(body, @"Media\sType:.*?>([^<]+?)<");
-            var trafficPopularity = GetFirstMatch(body, @"Traffic\/Popularity:.*?>([^<]+?)<");
-            var mbfcCredibilityRating = GetFirstMatch(body, @"MBFC\sCredibility\sRating:.*?>([^<]+?)<");
-
-            return new MbfcReport
-            {
-                Source = source,
-                Name = name,
-                BiasRating = biasRating,
-                FactualReporting = factualReporting,
-                Country = country,
-                MediaType = mediaType,
-                TrafficPopularity = trafficPopularity,
-                MBFCCredibilityRating = mbfcCredibilityRating,
-                PageUrl = pageUrl
-            };
+            return await response.Content.ReadAsStringAsync();
         }
 
         private async Task<string> GetMbfcPageUrl(string source)
@@ -71,23 +67,18 @@ namespace GossipCheck.WebScraper.Services.Services
                 .Select(x => $"({string.Join(".?", x.ToCharArray())})")
                 .Aggregate((x, y) => x + '|' + y);
 
-            var relativeUri = GetFirstMatch(body, $@"href=""/({namePattern})/""");
-            if (relativeUri == null)
-            {
-                return null;
-            }
-
-            return new Uri(new Uri(config.ServiceUrl), relativeUri).ToString();
-        }
-
-        private string GetFirstMatch(string input, string regexPattern)
-        {
             var match = Regex.Match(
-                input,
-                regexPattern,
+                body,
+                $@"href=""/({namePattern})/""",
                 RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Multiline);
 
-            return match.Success ? match.Groups[1].Value : null;
+            if (match.Success)
+            {
+                var relativeUrl = match.Groups[1].Value;
+                return new Uri(new Uri(config.ServiceUrl), relativeUrl).ToString();
+            }
+
+            return null;
         }
 
         public void Dispose()
