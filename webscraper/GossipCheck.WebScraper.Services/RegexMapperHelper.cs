@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace GossipCheck.WebScraper.Services
@@ -12,7 +13,7 @@ namespace GossipCheck.WebScraper.Services
                 .Cast<RegexMapperAttribute>()
                 .ToArray();
 
-            var processedInput = ApplyAttributes(input, globalAttributes);
+            string processedInput = ApplyAttributes(input, globalAttributes).ToString();
 
             var result = new T();
             foreach (var property in typeof(T).GetProperties())
@@ -23,13 +24,13 @@ namespace GossipCheck.WebScraper.Services
                     .ToArray();
 
                 var value = ApplyAttributes(processedInput, attributes);
-                property.SetValue(result, value);
+                property.SetValue(result, Convert.ChangeType(value, property.PropertyType));
             }
 
             return result;
         }
 
-        private static string ApplyAttributes(string input, IEnumerable<RegexMapperAttribute> attributes)
+        private static object ApplyAttributes(string input, IEnumerable<RegexMapperAttribute> attributes)
         {
             foreach (var attribute in attributes)
             {
