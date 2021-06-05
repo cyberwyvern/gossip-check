@@ -7,5 +7,7 @@
         public int Attempts { get; set; }
 
         public int RetryInterval { get; set; }
+
+        public int SearchVisits { get; set; }
     }
 }

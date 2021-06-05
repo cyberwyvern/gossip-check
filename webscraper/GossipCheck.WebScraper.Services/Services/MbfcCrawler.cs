@@ -5,7 +5,6 @@ using GossipCheck.WebScraper.Services.Exceptions;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -18,6 +17,15 @@ namespace GossipCheck.WebScraper.Services.Services
     {
         private readonly HttpClient client;
         private readonly MbfcServiceConfig config;
+        private readonly string[] reportFieldsList = new[] {
+            "Bias Rating",
+            "Factual Reporting",
+            "Country",
+            "Media Type",
+            "Traffic.Popularity",
+            "MBFC Credibility Rating",
+            "World Press Freedom Rank"
+        };
 
         private IHtmlDocument searchPage;
         private IHtmlDocument reportPage;
@@ -45,7 +53,8 @@ namespace GossipCheck.WebScraper.Services.Services
                 }
                 catch
                 {
-                    throw new MbfcParserException();
+                    Console.WriteLine(url);
+                    throw;// new MbfcParserException();
                 }
             }
 
@@ -56,17 +65,34 @@ namespace GossipCheck.WebScraper.Services.Services
         {
             var hostName = GetHostName(url);
             await RetrieveSearchPage(hostName);
-            var reportPageUrl = GetReportPageUrl(hostName);
-            await RetrieveReportPage(reportPageUrl);
-            if (!ValidateSourceOnReportPage(hostName))
+            var reportUrls = SearchReportPages(hostName)
+                .Take(config.SearchVisits)
+                .ToList();
+
+            var urlIndex = 0;
+            string reportPageUrl = null;
+            while (reportPageUrl == null && urlIndex < reportUrls.Count())
             {
-                throw new MbfcParserException("Incorrect report page");
+                reportPage?.Dispose();
+                reportPage = null;
+
+                await RetrieveReportPage(reportUrls[urlIndex++]);
+                if (ValidateSourceOnReportPage(hostName))
+                {
+                    reportPageUrl = reportUrls[urlIndex++];
+                }
             }
 
-            if (!TryGetReportDictionary(out Dictionary<string, string> report))
+            if (reportPageUrl == null)
             {
-                report = await GetReportDictionaryFromImages();
+                throw new MbfcParserException("Invalid report page");
             }
+
+            var report = GetReportDictionary()
+                .Union(GetReportDictionaryFromImages())
+                .GroupBy(x => x.Key)
+                .Select(x => x.First())
+                .ToDictionary(x => x.Key, x => x.Value);
 
             report["PageUrl"] = reportPageUrl;
             report["Source"] = hostName;
@@ -94,80 +120,65 @@ namespace GossipCheck.WebScraper.Services.Services
             this.reportPage = parser.ParseDocument(html);
         }
 
-        private bool TryGetReportDictionary(out Dictionary<string, string> reportDictionary)
+        private Dictionary<string, string> GetReportDictionary()
         {
             var detailedReport = reportPage.QuerySelectorAll("p")
                 .Select(x => x.TextContent)
-                .FirstOrDefault(x => x.Contains("Factual Reporting", StringComparison.OrdinalIgnoreCase));
-
-            if (detailedReport == null)
-            {
-                reportDictionary = default;
-                return false;
-            };
+                .FirstOrDefault(x => reportFieldsList.Any(f => x.Contains(f)));
 
             var matches = Regex.Matches(
-                detailedReport,
-                @".+?(?=Bias Rating|Factual Reporting|Country|Media Type|Traffic.Popularity|MBFC Credibility Rating|World Press Freedom Rank|$)",
+                detailedReport ?? string.Empty,
+                @$".+?(?={string.Join(":|", reportFieldsList)}|$)",
                 RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
 
-            reportDictionary = matches
+            return matches
                 .Cast<Match>()
                 .Select(x => x.Value.Split(':'))
                 .ToDictionary(x => x[0].ToPascalCase(), x => x[1].Trim());
-
-            return true;
         }
 
-        private async Task<Dictionary<string, string>> GetReportDictionaryFromImages()
+        private Dictionary<string, string> GetReportDictionaryFromImages()
         {
-            var factualReportingImageUrl = reportPage
-                .QuerySelector(@"img[alt*=""Factual Reporting""]")
-                .GetAttribute("src")
-                .Split('?')[0];
+            var factualReportingImage = reportPage.QuerySelector(@"img[alt*=""Factual Reporting""]");
+            var biasImage = reportPage.QuerySelector(@"img[alt*=""Bias""]");
+            var satireImage = reportPage.QuerySelector(@"img[alt*=""Satire""]");
 
-            return new Dictionary<string, string>
+            var dictionary = new Dictionary<string, string>();
+            if (factualReportingImage != null)
             {
-                {"Factual Reporting:", await GetFactualReportingFromImage(factualReportingImageUrl)}
-            };
+                var src = factualReportingImage.GetAttribute("src");
+                var value = Regex.Match(src, @"(?<=MBFC).+(?=\.png)", RegexOptions.IgnoreCase).Value;
+                dictionary["FactualReporting"] = value;
+            }
+            if (satireImage != null)
+            {
+                dictionary["BiasRating"] = "Satire";
+            }
+            if (biasImage != null)
+            {
+                var src = biasImage.GetAttribute("src");
+                var value = Regex.Match(src, @"[^\/]+(?=\d+?\.png)").Value;
+                dictionary["BiasRating"] = value;
+            }
+
+            return dictionary;
         }
 
-        private async Task<string> GetFactualReportingFromImage(string url)
-        {
-            const int rows = 8;
-            const int margin = 10;
-            const string white = "ffffffff";
-
-            var response = await client.GetAsync(url);
-            using var imgBytes = await response.Content.ReadAsStreamAsync();
-            using var bmp = new Bitmap(imgBytes);
-
-            var step = bmp.Height / rows;
-            int startPixel = step + step / 2;
-            var factualReportingResultDictionary = new Dictionary<string, bool>
-            {
-                {"Very High",      bmp.GetPixel(bmp.Width / margin, startPixel + step * 0).Name != white},
-                {"High",           bmp.GetPixel(bmp.Width / margin, startPixel + step * 1).Name != white},
-                {"Mostly Factual", bmp.GetPixel(bmp.Width / margin, startPixel + step * 2).Name != white},
-                {"Mixed",          bmp.GetPixel(bmp.Width / margin, startPixel + step * 3).Name != white},
-                {"Low",            bmp.GetPixel(bmp.Width / margin, startPixel + step * 4).Name != white},
-                {"Very Low",       bmp.GetPixel(bmp.Width / margin, startPixel + step * 5).Name != white}
-            };
-
-            return factualReportingResultDictionary.FirstOrDefault(x => x.Value).Key;
-        }
-
-        private string GetReportPageUrl(string host)
+        private IEnumerable<string> SearchReportPages(string host)
         {
             var reportPages = searchPage
                 .QuerySelectorAll(@"a[href][title][rel=""bookmark""]")
-                .Select(x => x.GetAttribute("href"))
-                .ToArray();
+                .Select(x => new Uri(new Uri(config.ServiceUrl), x.GetAttribute("href")).ToString())
+                .ToList();
 
-            var reportPageBaseUrl = reportPages.FirstOrDefault(x => Regex.IsMatch(host, Regex.Replace(x, @"\W|", ".?"), RegexOptions.IgnoreCase))
-                ?? reportPages.FirstOrDefault();
+            var bestMatch = reportPages.FirstOrDefault(x => Regex.IsMatch(host, Regex.Replace(x, @"\W|", ".?"), RegexOptions.IgnoreCase));
+            if (bestMatch != null)
+            {
+                reportPages.Remove(bestMatch);
+                reportPages.Prepend(bestMatch);
+            }
 
-            return new Uri(new Uri(config.ServiceUrl), reportPageBaseUrl).ToString();
+            return reportPages;
         }
 
         private string GetHostName(string url)
@@ -180,7 +191,7 @@ namespace GossipCheck.WebScraper.Services.Services
 
         private bool ValidateSourceOnReportPage(string host)
         {
-            return reportPage.QuerySelector($@"a[href*=""{host}""]") != null;
+            return reportPage?.QuerySelector($@"a[href*=""{host}""]") != null;
         }
 
         public void Dispose()
