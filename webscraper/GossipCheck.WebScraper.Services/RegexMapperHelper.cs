@@ -13,7 +13,11 @@ namespace GossipCheck.WebScraper.Services
                 .Cast<RegexMapperAttribute>()
                 .ToArray();
 
-            string processedInput = ApplyAttributes(input, globalAttributes).ToString();
+            string processedInput = ApplyAttributes(input, globalAttributes)?.ToString();
+            if (processedInput == null)
+            {
+                return default;
+            }
 
             var result = new T();
             foreach (var property in typeof(T).GetProperties())

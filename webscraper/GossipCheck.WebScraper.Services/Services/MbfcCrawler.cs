@@ -28,25 +28,34 @@ namespace GossipCheck.WebScraper.Services.Services
 
         public async Task<MbfcReport> GetMbfcReport(string url)
         {
-            try
-            {
-                var pageUrl = await GetMbfcPageUrl(url);
-                var reportHtml = await GetMbfcReportHtml(pageUrl);
+            var hostName = GetHostName(url);
 
-                var report = RegexMapperHelper.Map<MbfcReport>(reportHtml);
-                report.Source = new Uri(url).GetLeftPart(UriPartial.Authority);
-                report.PageUrl = pageUrl;
+            var retry = this.config.RetryCount;
+            while (retry > 0)
+            {
+                try
+                {
+                    var pageUrl = await GetMbfcPageUrl(hostName);
+                    var reportHtml = await GetMbfcReportHtml(pageUrl);
 
-                return report;
+                    var report = RegexMapperHelper.Map<MbfcReport>(reportHtml);
+                    report.Source = hostName;
+                    report.PageUrl = pageUrl;
+
+                    return report;
+                }
+                catch (HttpRequestException)
+                {
+                    retry--;
+                    await Task.Delay(this.config.RetryInterval);
+                }
+                catch
+                {
+                    throw new MbfcParserException();
+                }
             }
-            catch (HttpRequestException)
-            {
-                throw new MbfcRequestException();
-            }
-            catch
-            {
-                throw new MbfcParserException();
-            }
+
+            throw new MbfcRequestException();
         }
 
         private async Task<string> GetMbfcReportHtml(string pageUrl)
@@ -56,9 +65,8 @@ namespace GossipCheck.WebScraper.Services.Services
             return await response.Content.ReadAsStringAsync();
         }
 
-        private async Task<string> GetMbfcPageUrl(string source)
+        private async Task<string> GetMbfcPageUrl(string hostName)
         {
-            var hostName = new Uri(source).Host;
             var response = await client.GetAsync($"?s={HttpUtility.UrlEncode(hostName)}");
             response.EnsureSuccessStatusCode();
             var body = await response.Content.ReadAsStringAsync();
@@ -79,6 +87,14 @@ namespace GossipCheck.WebScraper.Services.Services
             }
 
             return null;
+        }
+
+        private string GetHostName(string url)
+        {
+            var sourceUrl = new Uri(url, UriKind.RelativeOrAbsolute);
+            return sourceUrl.IsAbsoluteUri
+                ? sourceUrl.DnsSafeHost
+                : sourceUrl.ToString();
         }
 
         public void Dispose()
