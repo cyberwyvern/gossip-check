@@ -1,9 +1,11 @@
-﻿using AngleSharp.Html.Parser;
+﻿using AngleSharp.Html.Dom;
+using AngleSharp.Html.Parser;
 using GossipCheck.WebScraper.Services.ConfigurationOptionModels;
 using GossipCheck.WebScraper.Services.Exceptions;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -31,11 +33,12 @@ namespace GossipCheck.WebScraper.Services.Services
             var hostName = GetHostName(url);
 
             var retry = this.config.RetryCount;
+            string pageUrl = null;
             while (retry > 0)
             {
                 try
                 {
-                    var pageUrl = await GetMbfcPageUrl(hostName);
+                    pageUrl = await GetMbfcPageUrl(hostName);
                     var report = await GetMbfcReportDictionary(pageUrl);
                     report["PageUrl"] = pageUrl;
                     report["Source"] = hostName;
@@ -49,7 +52,9 @@ namespace GossipCheck.WebScraper.Services.Services
                 }
                 catch
                 {
-                    throw new MbfcParserException();
+                    Console.WriteLine($"!!!!!!!!!!!!!!!!!!!!!!!! {url} - {pageUrl}");
+                    throw;
+                    //throw new MbfcParserException();
                 }
             }
 
@@ -64,7 +69,15 @@ namespace GossipCheck.WebScraper.Services.Services
 
             var parser = new HtmlParser();
             var document = parser.ParseDocument(html);
-            var detailedReport = document.QuerySelector("h3 + p")?.TextContent;
+            var detailedReport = document.QuerySelectorAll("p")
+                .Select(x => x.TextContent)
+                .FirstOrDefault(x => x.Contains("Factual Reporting", StringComparison.OrdinalIgnoreCase));
+
+            if (detailedReport == null)
+            {
+                return await GetMbfcReportDictionaryFromImages(document);
+            }
+
             var matches = Regex.Matches(
                 detailedReport,
                 @".+?(?=Bias Rating|Factual Reporting|Country|Media Type|Traffic.Popularity|MBFC Credibility Rating|World Press Freedom Rank|$)",
@@ -84,10 +97,13 @@ namespace GossipCheck.WebScraper.Services.Services
 
             var parser = new HtmlParser();
             var document = parser.ParseDocument(html);
-            var pageUrl = document
+            var pageUrls = document
                 .QuerySelectorAll(@"a[href][title][rel=""bookmark""]")
                 .Select(x => x.GetAttribute("href"))
-                .FirstOrDefault(x => Regex.IsMatch(host, Regex.Replace(x, @"\W|", ".?")));
+                .ToArray();
+
+            var pageUrl = pageUrls.FirstOrDefault(x => Regex.IsMatch(host, Regex.Replace(x, @"\W|", ".?"), RegexOptions.IgnoreCase))
+                ?? pageUrls.FirstOrDefault();
 
             return new Uri(new Uri(config.ServiceUrl), pageUrl).ToString();
         }
@@ -98,6 +114,49 @@ namespace GossipCheck.WebScraper.Services.Services
             return sourceUrl.IsAbsoluteUri
                 ? sourceUrl.DnsSafeHost
                 : sourceUrl.ToString();
+        }
+
+        private async Task<Dictionary<string, string>> GetMbfcReportDictionaryFromImages(IHtmlDocument document)
+        {
+            var factualReportingImageUrl = document
+                .QuerySelector(@"img[alt*=""Factual Reporting""]")
+                .GetAttribute("src")
+                .Split('?')[0];
+
+            return new Dictionary<string, string>
+            {
+                {"Factual Reporting:", await GetFactualReportingFromImage(factualReportingImageUrl)}
+            };
+        }
+
+        private async Task<string> GetFactualReportingFromImage(string url)
+        {
+            const int rows = 8;
+            const int margin = 10;
+            const string white = "ffffffff";
+
+            var response = await client.GetAsync(url);
+            using var imgBytes = await response.Content.ReadAsStreamAsync();
+            using var bmp = new Bitmap(imgBytes);
+
+            var step = bmp.Height / rows;
+            int startPixel = step + step / 2;
+            var factualReportingResultDictionary = new Dictionary<string, bool>
+            {
+                {"Very High",      bmp.GetPixel(bmp.Width / margin, startPixel + step * 0).Name != white},
+                {"High",           bmp.GetPixel(bmp.Width / margin, startPixel + step * 1).Name != white},
+                {"Mostly Factual", bmp.GetPixel(bmp.Width / margin, startPixel + step * 2).Name != white},
+                {"Mixed",          bmp.GetPixel(bmp.Width / margin, startPixel + step * 3).Name != white},
+                {"Low",            bmp.GetPixel(bmp.Width / margin, startPixel + step * 4).Name != white},
+                {"Very Low",       bmp.GetPixel(bmp.Width / margin, startPixel + step * 5).Name != white}
+            };
+
+            return factualReportingResultDictionary.FirstOrDefault(x => x.Value).Key;
+        }
+
+        private bool CheckSourceOnPage(string host, IHtmlDocument document)
+        {
+            return document.QuerySelector($"a[href*={host}]") != null;
         }
 
         public void Dispose()
