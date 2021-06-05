@@ -19,6 +19,9 @@ namespace GossipCheck.WebScraper.Services.Services
         private readonly HttpClient client;
         private readonly MbfcServiceConfig config;
 
+        private IHtmlDocument searchPage;
+        private IHtmlDocument reportPage;
+
         public MbfcCrawler(IOptions<MbfcServiceConfig> config)
         {
             this.config = config.Value;
@@ -30,95 +33,95 @@ namespace GossipCheck.WebScraper.Services.Services
 
         public async Task<Dictionary<string, string>> GetMbfcReport(string url)
         {
-            var hostName = GetHostName(url);
-
-            var retry = this.config.RetryCount;
-            string pageUrl = null;
-            while (retry > 0)
+            for (var i = 0; i < this.config.Attempts; i++)
             {
                 try
                 {
-                    pageUrl = await GetMbfcPageUrl(hostName);
-                    var report = await GetMbfcReportDictionary(pageUrl);
-                    report["PageUrl"] = pageUrl;
-                    report["Source"] = hostName;
-
-                    return report;
+                    return await AttemptGetReport(url);
                 }
                 catch (HttpRequestException)
                 {
-                    retry--;
                     await Task.Delay(this.config.RetryInterval);
                 }
                 catch
                 {
-                    Console.WriteLine($"!!!!!!!!!!!!!!!!!!!!!!!! {url} - {pageUrl}");
-                    throw;
-                    //throw new MbfcParserException();
+                    throw new MbfcParserException();
                 }
             }
 
             throw new MbfcRequestException();
         }
 
-        private async Task<Dictionary<string, string>> GetMbfcReportDictionary(string pageUrl)
+        private async Task<Dictionary<string, string>> AttemptGetReport(string url)
         {
-            var response = await client.GetAsync(pageUrl);
-            response.EnsureSuccessStatusCode();
-            var html = await response.Content.ReadAsStringAsync();
-
-            var parser = new HtmlParser();
-            var document = parser.ParseDocument(html);
-            var detailedReport = document.QuerySelectorAll("p")
-                .Select(x => x.TextContent)
-                .FirstOrDefault(x => x.Contains("Factual Reporting", StringComparison.OrdinalIgnoreCase));
-
-            if (detailedReport == null)
+            var hostName = GetHostName(url);
+            await RetrieveSearchPage(hostName);
+            var reportPageUrl = GetReportPageUrl(hostName);
+            await RetrieveReportPage(reportPageUrl);
+            if (!ValidateSourceOnReportPage(hostName))
             {
-                return await GetMbfcReportDictionaryFromImages(document);
+                throw new MbfcParserException("Incorrect report page");
             }
 
-            var matches = Regex.Matches(
-                detailedReport,
-                @".+?(?=Bias Rating|Factual Reporting|Country|Media Type|Traffic.Popularity|MBFC Credibility Rating|World Press Freedom Rank|$)",
-                RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
+            if (!TryGetReportDictionary(out Dictionary<string, string> report))
+            {
+                report = await GetReportDictionaryFromImages();
+            }
 
-            return matches
-                .Cast<Match>()
-                .Select(x => x.Value.Split(':'))
-                .ToDictionary(x => x[0].ToPascalCase(), x => x[1].Trim());
+            report["PageUrl"] = reportPageUrl;
+            report["Source"] = hostName;
+
+            return report;
         }
 
-        private async Task<string> GetMbfcPageUrl(string host)
+        private async Task RetrieveSearchPage(string host)
         {
             var response = await client.GetAsync($"?s={HttpUtility.UrlEncode(host)}");
             response.EnsureSuccessStatusCode();
             var html = await response.Content.ReadAsStringAsync();
 
             var parser = new HtmlParser();
-            var document = parser.ParseDocument(html);
-            var pageUrls = document
-                .QuerySelectorAll(@"a[href][title][rel=""bookmark""]")
-                .Select(x => x.GetAttribute("href"))
-                .ToArray();
-
-            var pageUrl = pageUrls.FirstOrDefault(x => Regex.IsMatch(host, Regex.Replace(x, @"\W|", ".?"), RegexOptions.IgnoreCase))
-                ?? pageUrls.FirstOrDefault();
-
-            return new Uri(new Uri(config.ServiceUrl), pageUrl).ToString();
+            this.searchPage = parser.ParseDocument(html);
         }
 
-        private string GetHostName(string url)
+        private async Task RetrieveReportPage(string reportPageUrl)
         {
-            var sourceUrl = new Uri(url, UriKind.RelativeOrAbsolute);
-            return sourceUrl.IsAbsoluteUri
-                ? sourceUrl.DnsSafeHost
-                : sourceUrl.ToString();
+            var response = await client.GetAsync(reportPageUrl);
+            response.EnsureSuccessStatusCode();
+            var html = await response.Content.ReadAsStringAsync();
+
+            var parser = new HtmlParser();
+            this.reportPage = parser.ParseDocument(html);
         }
 
-        private async Task<Dictionary<string, string>> GetMbfcReportDictionaryFromImages(IHtmlDocument document)
+        private bool TryGetReportDictionary(out Dictionary<string, string> reportDictionary)
         {
-            var factualReportingImageUrl = document
+            var detailedReport = reportPage.QuerySelectorAll("p")
+                .Select(x => x.TextContent)
+                .FirstOrDefault(x => x.Contains("Factual Reporting", StringComparison.OrdinalIgnoreCase));
+
+            if (detailedReport == null)
+            {
+                reportDictionary = default;
+                return false;
+            };
+
+            var matches = Regex.Matches(
+                detailedReport,
+                @".+?(?=Bias Rating|Factual Reporting|Country|Media Type|Traffic.Popularity|MBFC Credibility Rating|World Press Freedom Rank|$)",
+                RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
+
+            reportDictionary = matches
+                .Cast<Match>()
+                .Select(x => x.Value.Split(':'))
+                .ToDictionary(x => x[0].ToPascalCase(), x => x[1].Trim());
+
+            return true;
+        }
+
+        private async Task<Dictionary<string, string>> GetReportDictionaryFromImages()
+        {
+            var factualReportingImageUrl = reportPage
                 .QuerySelector(@"img[alt*=""Factual Reporting""]")
                 .GetAttribute("src")
                 .Split('?')[0];
@@ -154,14 +157,37 @@ namespace GossipCheck.WebScraper.Services.Services
             return factualReportingResultDictionary.FirstOrDefault(x => x.Value).Key;
         }
 
-        private bool CheckSourceOnPage(string host, IHtmlDocument document)
+        private string GetReportPageUrl(string host)
         {
-            return document.QuerySelector($"a[href*={host}]") != null;
+            var reportPages = searchPage
+                .QuerySelectorAll(@"a[href][title][rel=""bookmark""]")
+                .Select(x => x.GetAttribute("href"))
+                .ToArray();
+
+            var reportPageBaseUrl = reportPages.FirstOrDefault(x => Regex.IsMatch(host, Regex.Replace(x, @"\W|", ".?"), RegexOptions.IgnoreCase))
+                ?? reportPages.FirstOrDefault();
+
+            return new Uri(new Uri(config.ServiceUrl), reportPageBaseUrl).ToString();
+        }
+
+        private string GetHostName(string url)
+        {
+            var sourceUrl = new Uri(url, UriKind.RelativeOrAbsolute);
+            return sourceUrl.IsAbsoluteUri
+                ? sourceUrl.DnsSafeHost
+                : sourceUrl.ToString();
+        }
+
+        private bool ValidateSourceOnReportPage(string host)
+        {
+            return reportPage.QuerySelector($@"a[href*=""{host}""]") != null;
         }
 
         public void Dispose()
         {
             client.Dispose();
+            searchPage?.Dispose();
+            reportPage?.Dispose();
         }
     }
 }
