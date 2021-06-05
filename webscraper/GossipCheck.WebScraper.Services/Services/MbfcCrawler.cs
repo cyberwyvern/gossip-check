@@ -1,8 +1,9 @@
-﻿using GossipCheck.WebScraper.Services.ConfigurationOptionModels;
+﻿using AngleSharp.Html.Parser;
+using GossipCheck.WebScraper.Services.ConfigurationOptionModels;
 using GossipCheck.WebScraper.Services.Exceptions;
-using GossipCheck.WebScraper.Services.Models;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.RegularExpressions;
@@ -19,14 +20,13 @@ namespace GossipCheck.WebScraper.Services.Services
         public MbfcCrawler(IOptions<MbfcServiceConfig> config)
         {
             this.config = config.Value;
-
             client = new HttpClient
             {
                 BaseAddress = new Uri(config.Value.ServiceUrl)
             };
         }
 
-        public async Task<MbfcReport> GetMbfcReport(string url)
+        public async Task<Dictionary<string, string>> GetMbfcReport(string url)
         {
             var hostName = GetHostName(url);
 
@@ -36,11 +36,9 @@ namespace GossipCheck.WebScraper.Services.Services
                 try
                 {
                     var pageUrl = await GetMbfcPageUrl(hostName);
-                    var reportHtml = await GetMbfcReportHtml(pageUrl);
-
-                    var report = RegexMapperHelper.Map<MbfcReport>(reportHtml);
-                    report.Source = hostName;
-                    report.PageUrl = pageUrl;
+                    var report = await GetMbfcReportDictionary(pageUrl);
+                    report["PageUrl"] = pageUrl;
+                    report["Source"] = hostName;
 
                     return report;
                 }
@@ -58,35 +56,40 @@ namespace GossipCheck.WebScraper.Services.Services
             throw new MbfcRequestException();
         }
 
-        private async Task<string> GetMbfcReportHtml(string pageUrl)
+        private async Task<Dictionary<string, string>> GetMbfcReportDictionary(string pageUrl)
         {
-            var response = await client.GetAsync(new Uri(pageUrl));
+            var response = await client.GetAsync(pageUrl);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            var html = await response.Content.ReadAsStringAsync();
+
+            var parser = new HtmlParser();
+            var document = parser.ParseDocument(html);
+            var detailedReport = document.QuerySelector("h3 + p")?.TextContent;
+            var matches = Regex.Matches(
+                detailedReport,
+                @".+?(?=Bias Rating|Factual Reporting|Country|Media Type|Traffic.Popularity|MBFC Credibility Rating|World Press Freedom Rank|$)",
+                RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
+
+            return matches
+                .Cast<Match>()
+                .Select(x => x.Value.Split(':'))
+                .ToDictionary(x => x[0].ToPascalCase(), x => x[1].Trim());
         }
 
-        private async Task<string> GetMbfcPageUrl(string hostName)
+        private async Task<string> GetMbfcPageUrl(string host)
         {
-            var response = await client.GetAsync($"?s={HttpUtility.UrlEncode(hostName)}");
+            var response = await client.GetAsync($"?s={HttpUtility.UrlEncode(host)}");
             response.EnsureSuccessStatusCode();
-            var body = await response.Content.ReadAsStringAsync();
-            var namePattern = hostName
-                .Split('.')
-                .Select(x => $"({string.Join(".?", x.ToCharArray())})")
-                .Aggregate((x, y) => x + '|' + y);
+            var html = await response.Content.ReadAsStringAsync();
 
-            var match = Regex.Match(
-                body,
-                $@"href=""/({namePattern})/""",
-                RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.Multiline);
+            var parser = new HtmlParser();
+            var document = parser.ParseDocument(html);
+            var pageUrl = document
+                .QuerySelectorAll(@"a[href][title][rel=""bookmark""]")
+                .Select(x => x.GetAttribute("href"))
+                .FirstOrDefault(x => Regex.IsMatch(host, Regex.Replace(x, @"\W|", ".?")));
 
-            if (match.Success)
-            {
-                var relativeUrl = match.Groups[1].Value;
-                return new Uri(new Uri(config.ServiceUrl), relativeUrl).ToString();
-            }
-
-            return null;
+            return new Uri(new Uri(config.ServiceUrl), pageUrl).ToString();
         }
 
         private string GetHostName(string url)
