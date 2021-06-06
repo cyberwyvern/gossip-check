@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using System.Web;
 
 namespace GossipCheck.BLL.Services
 {
@@ -41,14 +42,13 @@ namespace GossipCheck.BLL.Services
         private async Task<IEnumerable<MbfcReport>> GetReportsFromWeb(IEnumerable<string> sourceUrls)
         {
             var tasks = sourceUrls.Select(x => GetReportFromWeb(x)).ToList();
-            tasks.ForEach(x => x.Start());
 
             return (await Task.WhenAll(tasks)).Where(x => x != null).ToList();
         }
 
         private async Task<MbfcReport> GetReportFromWeb(string sourceUrl)
         {
-            var response = await client.GetAsync(sourceUrl);
+            var response = await client.GetAsync($"webscraper/mbfc-report?sourceUrl={HttpUtility.UrlEncode(sourceUrl)}");
             if (!response.IsSuccessStatusCode)
             {
                 return null;

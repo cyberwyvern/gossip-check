@@ -40,12 +40,17 @@ namespace GossipCheck.BLL.Services
         public async Task<double> GetScore(IEnumerable<KeyValuePair<string, Stance>> sourceStances)
         {
             var reports = (await mbfcFacade.GetReportsAsync(sourceStances.Select(x => x.Key)))
-                .Where(x => x.FactualReporting != FactualReporting.NA);
+                .Where(x => x.FactualReporting != FactualReporting.NA)
+                .GroupBy(x => x.Source)
+                .Select(x => x.First())
+                .ToArray();
 
-            var reputations = reports
-                .Select(x => new { x.Source, Reputation = factualityScores[x.FactualReporting] })
-                .SoftmaxOnProperty(x => x.Reputation)
-                .ToDictionary(x => x.Source, x => x.Reputation);
+            var softmaxedReputations = reports.Select(CalculateReputation).Softmax().ToArray();
+            var reputations = new Dictionary<string, double>();
+            for (int i = 0; i < reports.Length; i++)
+            {
+                reputations.Add(reports[i].Source, softmaxedReputations[i]);
+            }
 
             return sourceStances
                 .Select(x => reputations.GetValueOrDefault(GetBaseUrl(x.Key)) * stanceFactor[x.Value])
@@ -55,6 +60,11 @@ namespace GossipCheck.BLL.Services
         private string GetBaseUrl(string url)
         {
             return new Uri(url).GetLeftPart(UriPartial.Authority).ToLower();
+        }
+
+        private double CalculateReputation(MbfcReport report)
+        {
+            return factualityScores[report.FactualReporting];
         }
     }
 }

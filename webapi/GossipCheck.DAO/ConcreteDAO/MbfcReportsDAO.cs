@@ -15,11 +15,14 @@ namespace GossipCheck.DAO.ConcreteDAO
 
         public async Task<IEnumerable<MbfcReport>> GetLatestByUrlsAsync(IEnumerable<string> urls)
         {
-            return await table
+            var reports = await table
                 .Where(x => urls.Contains(x.Source))
-                .GroupBy(x => x.Source)
-                .Select(x => x.FirstOrDefault())
                 .ToListAsync();
+            
+            return reports
+                .GroupBy(x => x.Source)
+                .Select(x => x.First())
+                .ToList();
         }
     }
 }
