@@ -1,6 +1,8 @@
 ﻿using GossipCheck.API.Models;
 using GossipCheck.BLL.Interface;
+using GossipCheck.BLL.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace GossipCheck.API.Controllers
@@ -22,7 +24,7 @@ namespace GossipCheck.API.Controllers
         public async Task<IActionResult> Verify(ArticleVerificationRequest request)
         {
             var stances = await stanceDetector.GetSourceStances(request.TextOrigin);
-            double score = await reputabilityAlgorithm.GetScore(stances);
+            double score = await reputabilityAlgorithm.GetScore(stances.Where(x => x.Value != Stance.Unrelated));
 
             return Ok(new ArticleVerificationResponse
             {

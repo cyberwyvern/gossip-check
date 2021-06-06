@@ -45,7 +45,7 @@ namespace GossipCheck.BLL.Services
                 .Select(x => x.First())
                 .ToArray();
 
-            var softmaxedReputations = reports.Select(CalculateReputation).Softmax().ToArray();
+            var softmaxedReputations = reports.Select(x => CalculateReputation(x) * 10).Softmax().ToArray();
             var reputations = new Dictionary<string, double>();
             for (int i = 0; i < reports.Length; i++)
             {
@@ -59,7 +59,7 @@ namespace GossipCheck.BLL.Services
 
         private string GetBaseUrl(string url)
         {
-            return new Uri(url).GetLeftPart(UriPartial.Authority).ToLower();
+            return new Uri(url).DnsSafeHost;
         }
 
         private double CalculateReputation(MbfcReport report)

@@ -8,8 +8,9 @@ namespace GossipCheck.BLL.Extensions
     {
         public static IEnumerable<double> Softmax(this IEnumerable<double> values)
         {
-            var sum = values.Sum(x => Math.Exp(x));
-            return values.Select(x => x / sum).ToArray();
+            var exp = values.Select(Math.Exp);
+            var sumExp = exp.Sum();
+            return exp.Select(i => i / sumExp);
         }
     }
 }
