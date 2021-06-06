@@ -10,7 +10,6 @@ WORKDIR /src
 COPY ["GossipCheck.API/GossipCheck.API.csproj", "GossipCheck.API/"]
 COPY ["GossipCheck.DAO/GossipCheck.DAO.csproj", "GossipCheck.DAO/"]
 COPY ["GossipCheck.BLL/GossipCheck.BLL.csproj", "GossipCheck.BLL/"]
-RUN curl https://api.nuget.org/v3/index.json -k
 RUN dotnet restore "GossipCheck.API/GossipCheck.API.csproj"
 COPY . .
 WORKDIR "/src/GossipCheck.API"
