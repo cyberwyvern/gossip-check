@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using GossipCheck.BLL.Models;
+using System.Collections.Generic;
 
 namespace GossipCheck.BLL.Interface
 {

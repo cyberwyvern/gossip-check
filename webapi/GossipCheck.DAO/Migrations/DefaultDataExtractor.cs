@@ -11,16 +11,16 @@ namespace GossipCheck.DAO.Migrations
     {
         public static IEnumerable<MbfcReport> ExtractData()
         {
-            var rootDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
-            var fullPath = Path.Combine(rootDir, @"DefaultData\defaultData.csv");
+            string rootDir = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
+            string fullPath = Path.Combine(rootDir, @"DefaultData\defaultData.csv");
 
-            var dateAdded = DateTime.Now;
+            DateTime dateAdded = DateTime.Now;
             using TextFieldParser parser = new TextFieldParser(fullPath)
             {
                 TextFieldType = FieldType.Delimited
             };
 
-            var reports = new List<MbfcReport>();
+            List<MbfcReport> reports = new List<MbfcReport>();
             parser.SetDelimiters(",");
             parser.ReadFields();
             int id = 1;

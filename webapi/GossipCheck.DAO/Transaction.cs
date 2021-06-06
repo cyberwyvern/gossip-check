@@ -17,49 +17,49 @@ namespace GossipCheck.DAO
 
         public void Start()
         {
-            this.transaction = this.context.Database.BeginTransaction();
+            transaction = context.Database.BeginTransaction();
         }
 
         public void Commit()
         {
-            this.context.SaveChanges();
-            this.transaction?.Commit();
+            context.SaveChanges();
+            transaction?.Commit();
         }
 
         public void Rollback()
         {
-            foreach (var entry in this.context.ChangeTracker.Entries())
+            foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry in context.ChangeTracker.Entries())
             {
                 entry.State = EntityState.Detached;
             }
 
-            this.transaction?.Rollback();
+            transaction?.Rollback();
         }
 
         public async Task StartAsync()
         {
-            this.transaction = await this.context.Database.BeginTransactionAsync();
+            transaction = await context.Database.BeginTransactionAsync();
         }
 
         public async Task CommitAsync()
         {
-            await this.context.SaveChangesAsync();
-            await this.transaction?.CommitAsync();
+            await context.SaveChangesAsync();
+            await transaction?.CommitAsync();
         }
 
         public async Task RollbackAsync()
         {
-            foreach (var entry in this.context.ChangeTracker.Entries())
+            foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry entry in context.ChangeTracker.Entries())
             {
                 entry.State = EntityState.Detached;
             }
 
-            await this.transaction?.RollbackAsync();
+            await transaction?.RollbackAsync();
         }
 
         public void Dispose()
         {
-            this.transaction?.Dispose();
+            transaction?.Dispose();
         }
     }
 }

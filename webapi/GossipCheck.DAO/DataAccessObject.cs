@@ -17,148 +17,148 @@ namespace GossipCheck.DAO
 
         public DataAccessObject(DbContext dbContext)
         {
-            this.context = dbContext;
-            this.table = this.context.Set<TEntity>();
+            context = dbContext;
+            table = context.Set<TEntity>();
         }
 
         public virtual UId Create(TEntity item)
         {
-            this.table.Add(item);
-            this.context.SaveChanges();
+            table.Add(item);
+            context.SaveChanges();
             return item.Id;
         }
 
         public virtual IEnumerable<TEntity> CreateMultiple(IEnumerable<TEntity> items)
         {
-            this.table.AddRange(items);
-            this.context.SaveChanges();
+            table.AddRange(items);
+            context.SaveChanges();
             return items;
         }
 
         public virtual TEntity Read(UId id)
         {
-            return this.table.Find(id);
+            return table.Find(id);
         }
 
         public virtual IEnumerable<TEntity> ReadMultiple(IEnumerable<UId> Ids)
         {
-            return this.table.Where(e => Ids.Contains(e.Id)).ToList();
+            return table.Where(e => Ids.Contains(e.Id)).ToList();
         }
 
         public virtual int Update(TEntity item)
         {
-            if (this.table.Local.Contains(item))
+            if (table.Local.Contains(item))
             {
-                this.context.Entry(item).State = EntityState.Detached;
+                context.Entry(item).State = EntityState.Detached;
             }
 
-            this.context.Update(item);
-            return this.context.SaveChanges();
+            context.Update(item);
+            return context.SaveChanges();
         }
 
         public virtual int UpdateMultiple(IEnumerable<TEntity> items)
         {
-            foreach (var item in items)
+            foreach (TEntity item in items)
             {
-                if (this.table.Local.Contains(item))
+                if (table.Local.Contains(item))
                 {
-                    this.context.Entry(item).State = EntityState.Detached;
+                    context.Entry(item).State = EntityState.Detached;
                 }
             }
 
-            this.context.UpdateRange(items);
-            return this.context.SaveChanges();
+            context.UpdateRange(items);
+            return context.SaveChanges();
         }
 
         public virtual int Delete(UId itemId)
         {
-            var tracked = this.table.Local.SingleOrDefault(i => i.Id.CompareTo(itemId) == 0);
+            TEntity tracked = table.Local.SingleOrDefault(i => i.Id.CompareTo(itemId) == 0);
 
-            this.table.Remove(tracked ?? new TEntity { Id = itemId });
-            return this.context.SaveChanges();
+            table.Remove(tracked ?? new TEntity { Id = itemId });
+            return context.SaveChanges();
         }
 
         public virtual int DeleteMultiple(IEnumerable<UId> itemsId)
         {
-            var tracked = new List<TEntity>();
-            foreach (var id in itemsId)
+            List<TEntity> tracked = new List<TEntity>();
+            foreach (UId id in itemsId)
             {
-                var item = this.table.Local.SingleOrDefault(i => i.Id.CompareTo(id) == 0);
+                TEntity item = table.Local.SingleOrDefault(i => i.Id.CompareTo(id) == 0);
                 tracked.Add(item ?? new TEntity { Id = id });
             }
 
-            this.table.RemoveRange(tracked);
-            return this.context.SaveChanges();
+            table.RemoveRange(tracked);
+            return context.SaveChanges();
         }
 
         public virtual async Task<UId> CreateAsync(TEntity item)
         {
-            this.table.Add(item);
-            await this.context.SaveChangesAsync();
+            table.Add(item);
+            await context.SaveChangesAsync();
             return item.Id;
         }
 
         public virtual async Task<IEnumerable<TEntity>> CreateMultipleAsync(IEnumerable<TEntity> items)
         {
-            this.table.AddRange(items);
-            await this.context.SaveChangesAsync();
+            table.AddRange(items);
+            await context.SaveChangesAsync();
             return items;
         }
 
         public virtual async Task<TEntity> ReadAsync(UId id)
         {
-            return await this.table.FindAsync(id);
+            return await table.FindAsync(id);
         }
 
         public virtual async Task<IEnumerable<TEntity>> ReadMultipleAsync(IEnumerable<UId> Ids)
         {
-            return await this.table.Where(e => Ids.Contains(e.Id)).ToListAsync();
+            return await table.Where(e => Ids.Contains(e.Id)).ToListAsync();
         }
 
         public virtual async Task<int> UpdateAsync(TEntity item)
         {
-            if (this.table.Local.Contains(item))
+            if (table.Local.Contains(item))
             {
-                this.context.Entry(item).State = EntityState.Detached;
+                context.Entry(item).State = EntityState.Detached;
             }
 
-            this.context.Update(item);
-            return await this.context.SaveChangesAsync();
+            context.Update(item);
+            return await context.SaveChangesAsync();
         }
 
         public virtual async Task<int> UpdateMultipleAsync(IEnumerable<TEntity> items)
         {
-            foreach (var item in items)
+            foreach (TEntity item in items)
             {
-                if (this.table.Local.Contains(item))
+                if (table.Local.Contains(item))
                 {
-                    this.context.Entry(item).State = EntityState.Detached;
+                    context.Entry(item).State = EntityState.Detached;
                 }
             }
 
-            this.context.UpdateRange(items);
-            return await this.context.SaveChangesAsync();
+            context.UpdateRange(items);
+            return await context.SaveChangesAsync();
         }
 
         public virtual async Task<int> DeleteAsync(UId itemId)
         {
-            var tracked = this.table.Local.SingleOrDefault(i => i.Id.CompareTo(itemId) == 0);
+            TEntity tracked = table.Local.SingleOrDefault(i => i.Id.CompareTo(itemId) == 0);
 
-            this.table.Remove(tracked ?? new TEntity { Id = itemId });
-            return await this.context.SaveChangesAsync();
+            table.Remove(tracked ?? new TEntity { Id = itemId });
+            return await context.SaveChangesAsync();
         }
 
         public virtual async Task<int> DeleteMultipleAsync(IEnumerable<UId> itemsId)
         {
-            var tracked = new List<TEntity>();
-            foreach (var id in itemsId)
+            List<TEntity> tracked = new List<TEntity>();
+            foreach (UId id in itemsId)
             {
-                var item = this.table.Local.SingleOrDefault(i => i.Id.CompareTo(id) == 0);
+                TEntity item = table.Local.SingleOrDefault(i => i.Id.CompareTo(id) == 0);
                 tracked.Add(item ?? new TEntity { Id = id });
             }
 
-            this.table.RemoveRange(tracked);
-            return await this.context.SaveChangesAsync();
+            table.RemoveRange(tracked);
+            return await context.SaveChangesAsync();
         }
     }
 }

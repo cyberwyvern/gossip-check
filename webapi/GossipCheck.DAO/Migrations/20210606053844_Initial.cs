@@ -1,7 +1,7 @@
-﻿using System;
-using System.Linq;
-using GossipCheck.DAO.Entities;
+﻿using GossipCheck.DAO.Entities;
 using Microsoft.EntityFrameworkCore.Migrations;
+using System;
+using System.Linq;
 
 namespace GossipCheck.DAO.Migrations
 {
@@ -32,9 +32,9 @@ namespace GossipCheck.DAO.Migrations
                     table.PrimaryKey("PK_MbfcReports", x => x.Id);
                 });
 
-            var defaultData = DefaultDataExtractor.ExtractData();
-            var properties = typeof(MbfcReport).GetProperties();
-            foreach (var report in defaultData)
+            System.Collections.Generic.IEnumerable<MbfcReport> defaultData = DefaultDataExtractor.ExtractData();
+            System.Reflection.PropertyInfo[] properties = typeof(MbfcReport).GetProperties();
+            foreach (MbfcReport report in defaultData)
             {
                 migrationBuilder.InsertData(
                     "MbfcReports",

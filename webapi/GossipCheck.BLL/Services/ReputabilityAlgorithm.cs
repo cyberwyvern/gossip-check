@@ -1,9 +1,10 @@
 ﻿using GossipCheck.BLL.Interface;
+using GossipCheck.BLL.Models;
 using GossipCheck.DAO.Interface;
 using System;
 using System.Collections.Generic;
 
-namespace GossipCheck.BLL
+namespace GossipCheck.BLL.Services
 {
     public class ReputabilityAlgorithm : IReputabilityAlgorithm
     {
@@ -27,6 +28,9 @@ namespace GossipCheck.BLL
             return 0;
         }
 
-        private string GetBaseUrl(string url) => new Uri(url).GetLeftPart(UriPartial.Authority).ToLower();
+        private string GetBaseUrl(string url)
+        {
+            return new Uri(url).GetLeftPart(UriPartial.Authority).ToLower();
+        }
     }
 }

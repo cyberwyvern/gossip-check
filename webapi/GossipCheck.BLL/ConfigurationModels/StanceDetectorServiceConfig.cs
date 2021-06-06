@@ -1,4 +1,4 @@
-﻿namespace GossipCheck.BLL
+﻿namespace GossipCheck.BLL.ConfigurationModels
 {
     public class StanceDetectorServiceConfig
     {

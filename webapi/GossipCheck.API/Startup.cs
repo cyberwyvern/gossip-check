@@ -1,5 +1,6 @@
-using GossipCheck.BLL;
+using GossipCheck.BLL.ConfigurationModels;
 using GossipCheck.BLL.Interface;
+using GossipCheck.BLL.Services;
 using GossipCheck.DAO;
 using GossipCheck.DAO.Interface;
 using Microsoft.AspNetCore.Builder;
@@ -27,7 +28,7 @@ namespace GossipCheck.API
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var stanceDetectorServiceConfig = Configuration.GetSection(StanceDetectorConfigurationSection);
+            IConfigurationSection stanceDetectorServiceConfig = Configuration.GetSection(StanceDetectorConfigurationSection);
             services.AddOptions<StanceDetectorServiceConfig>().Bind(stanceDetectorServiceConfig);
 
             services.AddDbContext<GossipCheckDBContext>(options =>

@@ -14,7 +14,7 @@ namespace GossipCheck.DAO.ConcreteDAO
 
         public IEnumerable<MbfcReport> GetLatestByUrls(IEnumerable<string> urls)
         {
-            return this.table
+            return table
                 .Where(x => urls.Contains(x.Source))
                 .AsEnumerable()
                 .GroupBy(x => x.Source)

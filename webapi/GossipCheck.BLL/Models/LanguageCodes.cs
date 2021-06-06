@@ -1,8 +1,8 @@
 ﻿using System.Collections.Generic;
 
-namespace GossipCheck.BLL
+namespace GossipCheck.BLL.Models
 {
-    static class LanguageCodes
+    internal static class LanguageCodes
     {
         public static Dictionary<Language, string> Codes = new Dictionary<Language, string>()
         {

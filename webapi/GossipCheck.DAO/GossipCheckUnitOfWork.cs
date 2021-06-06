@@ -12,7 +12,7 @@ namespace GossipCheck.DAO
 
         public string ConnectionString { get; private set; }
 
-        public IMbfcReportsDAO MbfcReports => this.mbfcReports ??= new MbfcReportsDAO(context);
+        public IMbfcReportsDAO MbfcReports => mbfcReports ??= new MbfcReportsDAO(context);
 
         public GossipCheckUnitOfWork(GossipCheckDBContext context)
         {
@@ -21,21 +21,21 @@ namespace GossipCheck.DAO
 
         public ITransaction StartTransaction()
         {
-            var transaction = new Transaction(this.context);
+            Transaction transaction = new Transaction(context);
             transaction.Start();
             return transaction;
         }
 
         public async Task<ITransaction> StartTransactionAsync()
         {
-            var transaction = new Transaction(this.context);
+            Transaction transaction = new Transaction(context);
             await transaction.StartAsync();
             return transaction;
         }
 
         public void Dispose()
         {
-            this.context?.Dispose();
+            context?.Dispose();
         }
     }
 }

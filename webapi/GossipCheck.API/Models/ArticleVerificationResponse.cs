@@ -1,4 +1,4 @@
-﻿using GossipCheck.BLL;
+﻿using GossipCheck.BLL.Models;
 using System.Collections.Generic;
 
 namespace GossipCheck.API.Models

@@ -1,4 +1,4 @@
-﻿namespace GossipCheck.BLL
+﻿namespace GossipCheck.BLL.Models
 {
     public enum Language
     {

@@ -21,8 +21,8 @@ namespace GossipCheck.API.Controllers
         [HttpPost("verify")]
         public async Task<IActionResult> Verify(ArticleVerificationRequest request)
         {
-            var stances = await this.stanceDetector.GetSourceStances(request.TextOrigin);
-            var score = this.reputabilityAlgorithm.GetScore(stances);
+            System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, BLL.Models.Stance>> stances = await stanceDetector.GetSourceStances(request.TextOrigin);
+            double score = reputabilityAlgorithm.GetScore(stances);
 
             return Ok(new ArticleVerificationResponse
             {
