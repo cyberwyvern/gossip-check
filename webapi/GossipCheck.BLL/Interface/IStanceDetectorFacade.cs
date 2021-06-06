@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace GossipCheck.BLL.Interface
 {
-    public interface IStanceDetectorFascade
+    public interface IStanceDetectorFacade
     {
         public Task<IEnumerable<KeyValuePair<string, Stance>>> GetSourceStances(string textOrigin);
     }

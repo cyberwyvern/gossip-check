@@ -3,6 +3,7 @@ using GossipCheck.DAO.Interface;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace GossipCheck.DAO.ConcreteDAO
 {
@@ -12,14 +13,13 @@ namespace GossipCheck.DAO.ConcreteDAO
         {
         }
 
-        public IEnumerable<MbfcReport> GetLatestByUrls(IEnumerable<string> urls)
+        public async Task<IEnumerable<MbfcReport>> GetLatestByUrlsAsync(IEnumerable<string> urls)
         {
-            return table
+            return await table
                 .Where(x => urls.Contains(x.Source))
-                .AsEnumerable()
                 .GroupBy(x => x.Source)
-                .Select(x => x.OrderByDescending(x => x.Date).First())
-                .ToList();
+                .Select(x => x.FirstOrDefault())
+                .ToListAsync();
         }
     }
 }

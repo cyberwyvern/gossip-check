@@ -18,6 +18,7 @@ namespace GossipCheck.API
     public class Startup
     {
         private const string StanceDetectorConfigurationSection = "StanceDetector";
+        private const string MbfcServiceConfigurationSection = "MbfcService";
 
         public Startup(IConfiguration configuration)
         {
@@ -28,8 +29,10 @@ namespace GossipCheck.API
 
         public void ConfigureServices(IServiceCollection services)
         {
-            IConfigurationSection stanceDetectorServiceConfig = Configuration.GetSection(StanceDetectorConfigurationSection);
+            var stanceDetectorServiceConfig = Configuration.GetSection(StanceDetectorConfigurationSection);
+            var mbfcServiceConfig = Configuration.GetSection(MbfcServiceConfigurationSection);
             services.AddOptions<StanceDetectorServiceConfig>().Bind(stanceDetectorServiceConfig);
+            services.AddOptions<MbfcServiceConfig>().Bind(mbfcServiceConfig);
 
             services.AddDbContext<GossipCheckDBContext>(options =>
             {
@@ -37,8 +40,9 @@ namespace GossipCheck.API
             });
 
             services.AddScoped<IGossipCheckUnitOfWork, GossipCheckUnitOfWork>();
+            services.AddTransient<IMbfcFacade, MbfcFacade>();
             services.AddTransient<IReputabilityAlgorithm, ReputabilityAlgorithm>();
-            services.AddTransient<IStanceDetectorFascade, StanceDetectorFascade>();
+            services.AddTransient<IStanceDetectorFacade, StanceDetectorFacade>();
 
             services.AddControllers().AddNewtonsoftJson(options =>
             {

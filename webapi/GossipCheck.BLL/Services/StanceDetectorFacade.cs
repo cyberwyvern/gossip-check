@@ -12,12 +12,12 @@ using System.Threading.Tasks;
 
 namespace GossipCheck.BLL.Services
 {
-    public class StanceDetectorFascade : IStanceDetectorFascade
+    public class StanceDetectorFacade : IStanceDetectorFacade
     {
         private readonly StanceDetectorServiceConfig config;
         private readonly HttpClient client;
 
-        public StanceDetectorFascade(IOptions<StanceDetectorServiceConfig> config)
+        public StanceDetectorFacade(IOptions<StanceDetectorServiceConfig> config)
         {
             this.config = config.Value;
             client = new HttpClient();

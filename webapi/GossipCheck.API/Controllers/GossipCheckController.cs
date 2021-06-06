@@ -9,10 +9,10 @@ namespace GossipCheck.API.Controllers
     [ApiController]
     public class GossipCheckController : ControllerBase
     {
-        private readonly IStanceDetectorFascade stanceDetector;
+        private readonly IStanceDetectorFacade stanceDetector;
         private readonly IReputabilityAlgorithm reputabilityAlgorithm;
 
-        public GossipCheckController(IStanceDetectorFascade stanceDetector, IReputabilityAlgorithm reputabilityAlgorithm)
+        public GossipCheckController(IStanceDetectorFacade stanceDetector, IReputabilityAlgorithm reputabilityAlgorithm)
         {
             this.stanceDetector = stanceDetector;
             this.reputabilityAlgorithm = reputabilityAlgorithm;
@@ -22,7 +22,7 @@ namespace GossipCheck.API.Controllers
         public async Task<IActionResult> Verify(ArticleVerificationRequest request)
         {
             System.Collections.Generic.IEnumerable<System.Collections.Generic.KeyValuePair<string, BLL.Models.Stance>> stances = await stanceDetector.GetSourceStances(request.TextOrigin);
-            double score = reputabilityAlgorithm.GetScore(stances);
+            double score = await reputabilityAlgorithm.GetScore(stances);
 
             return Ok(new ArticleVerificationResponse
             {
