@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using GossipCheck.WebScraper.Services.Models;
 using System.Threading.Tasks;
 
 namespace GossipCheck.WebScraper.Services.Services
 {
     public interface IMbfcCrawler
     {
-        Task<Dictionary<string, string>> GetMbfcReport(string url);
+        Task<MbfcReport> GetMbfcReport(string url);
     }
 }

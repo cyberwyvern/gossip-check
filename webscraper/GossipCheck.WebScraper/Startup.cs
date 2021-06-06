@@ -39,6 +39,7 @@ namespace GossipCheck.WebScraper
             services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+                options.JsonSerializerOptions.IgnoreNullValues = true;
             });
         }
 

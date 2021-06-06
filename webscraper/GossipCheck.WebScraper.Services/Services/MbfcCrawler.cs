@@ -2,6 +2,8 @@
 using AngleSharp.Html.Parser;
 using GossipCheck.WebScraper.Services.ConfigurationOptionModels;
 using GossipCheck.WebScraper.Services.Exceptions;
+using GossipCheck.WebScraper.Services.Mapping;
+using GossipCheck.WebScraper.Services.Models;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -21,6 +23,7 @@ namespace GossipCheck.WebScraper.Services.Services
             "Bias Rating",
             "Factual Reporting",
             "Country",
+            "County",
             "Media Type",
             "Traffic.Popularity",
             "MBFC Credibility Rating",
@@ -39,13 +42,13 @@ namespace GossipCheck.WebScraper.Services.Services
             };
         }
 
-        public async Task<Dictionary<string, string>> GetMbfcReport(string url)
+        public async Task<MbfcReport> GetMbfcReport(string url)
         {
             for (var i = 0; i < this.config.Attempts; i++)
             {
                 try
                 {
-                    return await AttemptGetReport(url);
+                    return (await AttemptGetReport(url)).ToMbfcReport();
                 }
                 catch (HttpRequestException)
                 {
@@ -53,8 +56,7 @@ namespace GossipCheck.WebScraper.Services.Services
                 }
                 catch
                 {
-                    Console.WriteLine(url);
-                    throw;// new MbfcParserException();
+                    throw new MbfcParserException();
                 }
             }
 
@@ -76,11 +78,13 @@ namespace GossipCheck.WebScraper.Services.Services
                 reportPage?.Dispose();
                 reportPage = null;
 
-                await RetrieveReportPage(reportUrls[urlIndex++]);
+                await RetrieveReportPage(reportUrls[urlIndex]);
                 if (ValidateSourceOnReportPage(hostName))
                 {
-                    reportPageUrl = reportUrls[urlIndex++];
+                    reportPageUrl = reportUrls[urlIndex];
                 }
+
+                urlIndex++;
             }
 
             if (reportPageUrl == null)
@@ -88,11 +92,14 @@ namespace GossipCheck.WebScraper.Services.Services
                 throw new MbfcParserException("Invalid report page");
             }
 
-            var report = GetReportDictionary()
-                .Union(GetReportDictionaryFromImages())
-                .GroupBy(x => x.Key)
-                .Select(x => x.First())
-                .ToDictionary(x => x.Key, x => x.Value);
+            var report = GetReportDictionary();
+            foreach (var kv in GetReportDictionaryFromImages())
+            {
+                if (!report.ContainsKey(kv.Key))
+                {
+                    report[kv.Key] = kv.Value;
+                }
+            }
 
             report["PageUrl"] = reportPageUrl;
             report["Source"] = hostName;
@@ -140,8 +147,6 @@ namespace GossipCheck.WebScraper.Services.Services
         private Dictionary<string, string> GetReportDictionaryFromImages()
         {
             var factualReportingImage = reportPage.QuerySelector(@"img[alt*=""Factual Reporting""]");
-            var biasImage = reportPage.QuerySelector(@"img[alt*=""Bias""]");
-            var satireImage = reportPage.QuerySelector(@"img[alt*=""Satire""]");
 
             var dictionary = new Dictionary<string, string>();
             if (factualReportingImage != null)
@@ -149,16 +154,6 @@ namespace GossipCheck.WebScraper.Services.Services
                 var src = factualReportingImage.GetAttribute("src");
                 var value = Regex.Match(src, @"(?<=MBFC).+(?=\.png)", RegexOptions.IgnoreCase).Value;
                 dictionary["FactualReporting"] = value;
-            }
-            if (satireImage != null)
-            {
-                dictionary["BiasRating"] = "Satire";
-            }
-            if (biasImage != null)
-            {
-                var src = biasImage.GetAttribute("src");
-                var value = Regex.Match(src, @"[^\/]+(?=\d+?\.png)").Value;
-                dictionary["BiasRating"] = value;
             }
 
             return dictionary;

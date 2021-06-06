@@ -4,20 +4,22 @@
     {
         public string Source { get; set; }
 
-        public string BiasRating { get; set; }
+        public string PageUrl { get; set; }
 
-        public string FactualReporting { get; set; }
+        public FactualReporting? FactualReporting { get; set; }
+
+        public BiasRating? BiasRating { get; set; }
+
+        public MediaType? MediaType { get; set; }
+
+        public TrafficPopularity? TrafficPopularity { get; set; }
+
+        public MbfcCredibilityRating? MbfcCredibilityRating { get; set; }
+
+        public string Reasoning { get; set; }
 
         public string Country { get; set; }
 
-        public string WorldPressFreedomRank { get; set; }
-
-        public string MediaType { get; set; }
-
-        public string TrafficPopularity { get; set; }
-
-        public string MBFCCredibilityRating { get; set; }
-
-        public string PageUrl { get; set; }
+        public int? WorldPressFreedomRank { get; set; }
     }
 }
