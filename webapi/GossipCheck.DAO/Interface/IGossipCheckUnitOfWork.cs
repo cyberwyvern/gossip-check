@@ -5,7 +5,7 @@ namespace GossipCheck.DAO.Interface
 {
     public interface IGossipCheckUnitOfWork : IDisposable
     {
-        ISourceReputationDAO SourceReputations { get; }
+        IMbfcReportsDAO MbfcReports { get; }
 
         ITransaction StartTransaction();
 

@@ -6,18 +6,18 @@ using System.Linq;
 
 namespace GossipCheck.DAO.ConcreteDAO
 {
-    internal sealed class SourceReputationDAO : DataAccessObject<SourceReputation, int>, ISourceReputationDAO
+    internal sealed class MbfcReportsDAO : DataAccessObject<MbfcReport, int>, IMbfcReportsDAO
     {
-        public SourceReputationDAO(DbContext dbContext) : base(dbContext)
+        public MbfcReportsDAO(DbContext dbContext) : base(dbContext)
         {
         }
 
-        public IEnumerable<SourceReputation> GetLatestByUrls(IEnumerable<string> urls)
+        public IEnumerable<MbfcReport> GetLatestByUrls(IEnumerable<string> urls)
         {
             return this.table
-                .Where(x => urls.Contains(x.BaseUrl))
+                .Where(x => urls.Contains(x.Source))
                 .AsEnumerable()
-                .GroupBy(x => x.BaseUrl)
+                .GroupBy(x => x.Source)
                 .Select(x => x.OrderByDescending(x => x.Date).First())
                 .ToList();
         }

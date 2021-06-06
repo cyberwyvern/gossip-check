@@ -19,26 +19,49 @@ namespace GossipCheck.DAO.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-            modelBuilder.Entity("GossipCheck.DAO.Entities.SourceReputation", b =>
+            modelBuilder.Entity("GossipCheck.DAO.Entities.MbfcReport", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("BaseUrl")
-                        .IsRequired()
+                    b.Property<int>("BiasRating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Country")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<DateTime>("Date")
                         .HasColumnType("datetime2");
 
-                    b.Property<double>("Reputation")
-                        .HasColumnType("float");
+                    b.Property<int>("FactualReporting")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MbfcCredibilityRating")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MediaType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PageUrl")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Reasoning")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Source")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("TrafficPopularity")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("WorldPressFreedomRank")
+                        .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.ToTable("SourceReputations");
+                    b.ToTable("MbfcReports");
                 });
 #pragma warning restore 612, 618
         }

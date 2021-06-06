@@ -8,11 +8,11 @@ namespace GossipCheck.DAO
     {
         private readonly GossipCheckDBContext context;
 
-        private ISourceReputationDAO sourceReputations;
+        private IMbfcReportsDAO mbfcReports;
 
         public string ConnectionString { get; private set; }
 
-        public ISourceReputationDAO SourceReputations => this.sourceReputations ??= new SourceReputationDAO(context);
+        public IMbfcReportsDAO MbfcReports => this.mbfcReports ??= new MbfcReportsDAO(context);
 
         public GossipCheckUnitOfWork(GossipCheckDBContext context)
         {

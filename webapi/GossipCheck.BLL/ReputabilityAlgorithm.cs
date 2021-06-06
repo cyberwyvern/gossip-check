@@ -2,7 +2,6 @@
 using GossipCheck.DAO.Interface;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace GossipCheck.BLL
 {
@@ -25,14 +24,7 @@ namespace GossipCheck.BLL
 
         public double GetScore(IEnumerable<KeyValuePair<string, Stance>> sourceStances)
         {
-            var sourceReputations = uow.SourceReputations
-                .GetLatestByUrls(sourceStances.Select(x => x.Key))
-                .SoftmaxOnProperty(x => x.Reputation)
-                .ToDictionary(x => x.BaseUrl.ToLower(), x => x.Reputation);
-
-            return sourceStances
-                .Select(x => sourceReputations.GetValueOrDefault(GetBaseUrl(x.Key)) * stanceFactor[x.Value])
-                .Sum() + 1 / 2;
+            return 0;
         }
 
         private string GetBaseUrl(string url) => new Uri(url).GetLeftPart(UriPartial.Authority).ToLower();

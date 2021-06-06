@@ -5,7 +5,7 @@ namespace GossipCheck.DAO
 {
     public sealed class GossipCheckDBContext : DbContext
     {
-        public DbSet<SourceReputation> SourceReputations { get; set; }
+        public DbSet<MbfcReport> MbfcReports { get; set; }
 
         public GossipCheckDBContext(DbContextOptions<GossipCheckDBContext> options) : base(options)
         {
