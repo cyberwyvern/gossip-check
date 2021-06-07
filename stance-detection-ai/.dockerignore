@@ -3,4 +3,4 @@
 Dockerfile
 publish.ps1
 checkpoint/model.png
-datasets/
+__pycache__
