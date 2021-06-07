@@ -50,12 +50,13 @@ namespace GossipCheck.WebScraper.Services.Services
         public async Task<MbfcReport> GetMbfcReport(string url)
         {
             url.EnsureWebUrl();
+            var baseUrl = new Uri(url).GetLeftPart(UriPartial.Authority);
 
             for (var i = 0; i < this.config.Attempts; i++)
             {
                 try
                 {
-                    return (await this.AttemptGetReport(new Uri(url).Host)).ToMbfcReport();
+                    return (await this.AttemptGetReport(baseUrl)).ToMbfcReport();
                 }
                 catch (HttpRequestException)
                 {
@@ -66,8 +67,9 @@ namespace GossipCheck.WebScraper.Services.Services
             throw new MbfcCrawlerException($"Could not get response from {this.config.ServiceUrl}");
         }
 
-        private async Task<Dictionary<string, string>> AttemptGetReport(string host)
+        private async Task<Dictionary<string, string>> AttemptGetReport(string baseUrl)
         {
+            var host = new Uri(baseUrl).Host;
             await this.RetrieveSearchPage(host);
             var reportUrls = this.SearchReportPages(host).Take(this.config.SearchVisits).ToList();
 
@@ -87,7 +89,7 @@ namespace GossipCheck.WebScraper.Services.Services
                 return new Dictionary<string, string>
                 {
                     { "PageUrl", reportPageUrl ?? throw new MbfcCrawlerException($"Report page not found for {host}") },
-                    { "Source", host }
+                    { "Source", baseUrl }
                 }
                 .Union(this.GetReportDictionary())
                 .Union(this.GetReportDictionaryFromImages())
