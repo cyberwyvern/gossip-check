@@ -23,10 +23,10 @@ namespace GossipCheck.API.Controllers
         [HttpPost("verify")]
         public async Task<IActionResult> Verify(ArticleVerificationRequest request)
         {
-            var stances = await stanceDetector.GetSourceStances(request.TextOrigin);
-            double score = await reputabilityAlgorithm.GetScore(stances.Where(x => x.Value != Stance.Unrelated));
+            var stances = await this.stanceDetector.GetSourceStances(request.TextOrigin);
+            var score = await this.reputabilityAlgorithm.GetScore(stances.Where(x => x.Value != Stance.Unrelated));
 
-            return Ok(new ArticleVerificationResponse
+            return this.Ok(new ArticleVerificationResponse
             {
                 Score = score,
                 SourceStances = stances
