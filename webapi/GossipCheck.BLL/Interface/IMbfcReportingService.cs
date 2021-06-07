@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace GossipCheck.BLL.Interface
 {
-    public interface IMbfcFacade
+    public interface IMbfcReportingService
     {
         Task<IEnumerable<MbfcReport>> GetReportsAsync(IEnumerable<string> sourceUrls);
     }

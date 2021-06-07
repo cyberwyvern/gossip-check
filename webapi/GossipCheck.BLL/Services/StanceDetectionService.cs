@@ -12,27 +12,27 @@ using System.Threading.Tasks;
 
 namespace GossipCheck.BLL.Services
 {
-    public class StanceDetectorFacade : IStanceDetectorFacade
+    public class StanceDetectionService : IStanceDetectionService
     {
-        private readonly StanceDetectorServiceConfig config;
+        private readonly StanceDetectionServiceConfig config;
         private readonly HttpClient client;
 
-        public StanceDetectorFacade(IOptions<StanceDetectorServiceConfig> config)
+        public StanceDetectionService(IOptions<StanceDetectionServiceConfig> config)
         {
             this.config = config.Value;
-            client = new HttpClient();
+            this.client = new HttpClient();
         }
 
         public async Task<IEnumerable<KeyValuePair<string, Stance>>> GetSourceStances(string textOrigin)
         {
-            KeywordsExtractionResponse keywordsResponse = await GetKeywords(textOrigin);
-            ArticleSearchResponse articlesResponse = await SearchArticles(new ArticleSearchRequest
+            var keywordsResponse = await this.GetKeywords(textOrigin);
+            var articlesResponse = await this.SearchArticles(new ArticleSearchRequest
             {
                 Language = keywordsResponse.Language,
                 Keywords = keywordsResponse.Keywords
             });
 
-            StanceDetectionRequest requestObject = new StanceDetectionRequest
+            var requestObject = new StanceDetectionRequest
             {
                 Headline = string.Join(' ', keywordsResponse.Keywords),
                 Bodies = articlesResponse.Articles
@@ -41,59 +41,59 @@ namespace GossipCheck.BLL.Services
                     .ToDictionary(x => x.Link, x => x.Summary)
             };
 
-            IEnumerable<KeyValuePair<string, Stance>> result = await GetStances(requestObject);
+            var result = await this.GetStances(requestObject);
 
             return result;
         }
 
         private async Task<IEnumerable<KeyValuePair<string, Stance>>> GetStances(StanceDetectionRequest requestObj)
         {
-            HttpRequestMessage request = new HttpRequestMessage
+            var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(new Uri(config.StanceDetectionAiUrl), "predict"),
+                RequestUri = new Uri(new Uri(this.config.StanceDetectionAiUrl), "predict"),
                 Content = new StringContent(JsonConvert.SerializeObject(requestObj), Encoding.UTF8, "application/json"),
             };
 
-            using HttpResponseMessage response = await client.SendAsync(request);
+            using var response = await this.client.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            string body = await response.Content.ReadAsStringAsync();
-            Dictionary<string, Stance> responseObj = JsonConvert.DeserializeObject<Dictionary<string, Stance>>(body);
+            var body = await response.Content.ReadAsStringAsync();
+            var responseObj = JsonConvert.DeserializeObject<Dictionary<string, Stance>>(body);
 
             return responseObj;
         }
 
         private async Task<KeywordsExtractionResponse> GetKeywords(string textOrigin)
         {
-            KeywordsExtractionRequest requestObj = new KeywordsExtractionRequest { TextOrigin = textOrigin };
-            HttpRequestMessage request = new HttpRequestMessage
+            var requestObj = new KeywordsExtractionRequest { TextOrigin = textOrigin };
+            var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(new Uri(config.WebScraperUrl), "webscraper/extract-keywords"),
+                RequestUri = new Uri(new Uri(this.config.WebScraperUrl), "webscraper/extract-keywords"),
                 Content = new StringContent(JsonConvert.SerializeObject(requestObj), Encoding.UTF8, "application/json"),
             };
 
-            using HttpResponseMessage response = await client.SendAsync(request);
+            using var response = await this.client.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            string body = await response.Content.ReadAsStringAsync();
-            KeywordsExtractionResponse responseObj = JsonConvert.DeserializeObject<KeywordsExtractionResponse>(body);
+            var body = await response.Content.ReadAsStringAsync();
+            var responseObj = JsonConvert.DeserializeObject<KeywordsExtractionResponse>(body);
 
             return responseObj;
         }
 
         private async Task<ArticleSearchResponse> SearchArticles(ArticleSearchRequest requestObj)
         {
-            HttpRequestMessage request = new HttpRequestMessage
+            var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,
-                RequestUri = new Uri(new Uri(config.WebScraperUrl), "webscraper/search-articles"),
+                RequestUri = new Uri(new Uri(this.config.WebScraperUrl), "webscraper/search-articles"),
                 Content = new StringContent(JsonConvert.SerializeObject(requestObj), Encoding.UTF8, "application/json"),
             };
 
-            using HttpResponseMessage response = await client.SendAsync(request);
+            using var response = await this.client.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            string body = await response.Content.ReadAsStringAsync();
-            ArticleSearchResponse responseObj = JsonConvert.DeserializeObject<ArticleSearchResponse>(body);
+            var body = await response.Content.ReadAsStringAsync();
+            var responseObj = JsonConvert.DeserializeObject<ArticleSearchResponse>(body);
 
             return responseObj;
         }

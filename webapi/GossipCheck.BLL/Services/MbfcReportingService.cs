@@ -13,13 +13,13 @@ using System.Web;
 
 namespace GossipCheck.BLL.Services
 {
-    public class MbfcFacade : IMbfcFacade, IDisposable
+    public class MbfcReportingService : IMbfcReportingService, IDisposable
     {
         private readonly HttpClient client;
         private readonly MbfcServiceConfig config;
         private readonly IGossipCheckUnitOfWork uow;
 
-        public MbfcFacade(IOptions<MbfcServiceConfig> config, IGossipCheckUnitOfWork uow)
+        public MbfcReportingService(IOptions<MbfcServiceConfig> config, IGossipCheckUnitOfWork uow)
         {
             this.config = config.Value;
             this.uow = uow;
@@ -31,24 +31,24 @@ namespace GossipCheck.BLL.Services
 
         public async Task<IEnumerable<MbfcReport>> GetReportsAsync(IEnumerable<string> sourceUrls)
         {
-            var reports = await GetReportsFromDatabase(sourceUrls);
+            var reports = await this.GetReportsFromDatabase(sourceUrls);
             var missingReportUrls = sourceUrls.Except(reports.Select(x => x.Source));
-            var missingReports = await GetReportsFromWeb(missingReportUrls);
-            await SaveReports(missingReports);
+            var missingReports = await this.GetReportsFromWeb(missingReportUrls);
+            await this.SaveReports(missingReports);
 
             return reports.Concat(missingReports).ToList();
         }
 
         private async Task<IEnumerable<MbfcReport>> GetReportsFromWeb(IEnumerable<string> sourceUrls)
         {
-            var tasks = sourceUrls.Select(x => GetReportFromWeb(x)).ToList();
+            var tasks = sourceUrls.Select(x => this.GetReportFromWeb(x)).ToList();
 
             return (await Task.WhenAll(tasks)).Where(x => x != null).ToList();
         }
 
         private async Task<MbfcReport> GetReportFromWeb(string sourceUrl)
         {
-            var response = await client.GetAsync($"webscraper/mbfc-report?sourceUrl={HttpUtility.UrlEncode(sourceUrl)}");
+            var response = await this.client.GetAsync($"webscraper/mbfc-report?sourceUrl={HttpUtility.UrlEncode(sourceUrl)}");
             if (!response.IsSuccessStatusCode)
             {
                 return null;
@@ -62,7 +62,7 @@ namespace GossipCheck.BLL.Services
 
         private async Task<IEnumerable<MbfcReport>> GetReportsFromDatabase(IEnumerable<string> sourceUrls)
         {
-            return await uow.MbfcReports.GetLatestByUrlsAsync(sourceUrls);
+            return await this.uow.MbfcReports.GetLatestByUrlsAsync(sourceUrls);
         }
 
         private async Task SaveReports(IEnumerable<MbfcReport> reports)
@@ -71,7 +71,7 @@ namespace GossipCheck.BLL.Services
             var savedDate = DateTime.Now;
             reportsList.ForEach(x => x.Date = savedDate);
 
-            await uow.MbfcReports.CreateMultipleAsync(reportsList);
+            await this.uow.MbfcReports.CreateMultipleAsync(reportsList);
         }
 
         public void Dispose()

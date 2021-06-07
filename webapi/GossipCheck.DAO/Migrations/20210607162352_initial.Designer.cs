@@ -10,8 +10,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace GossipCheck.DAO.Migrations
 {
     [DbContext(typeof(GossipCheckDBContext))]
-    [Migration("20210606053844_Initial")]
-    partial class Initial
+    [Migration("20210607162352_initial")]
+    partial class initial
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {

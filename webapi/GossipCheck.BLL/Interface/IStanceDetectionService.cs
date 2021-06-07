@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 namespace GossipCheck.BLL.Interface
 {
-    public interface IReputabilityAlgorithm
+    public interface IStanceDetectionService
     {
-        Task<double> GetScore(IEnumerable<KeyValuePair<string, Stance>> sourceStances);
+        public Task<IEnumerable<KeyValuePair<string, Stance>>> GetSourceStances(string textOrigin);
     }
 }

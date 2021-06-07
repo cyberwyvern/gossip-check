@@ -1,11 +1,9 @@
-﻿using GossipCheck.DAO.Entities;
-using Microsoft.EntityFrameworkCore.Migrations;
+﻿using Microsoft.EntityFrameworkCore.Migrations;
 using System;
-using System.Linq;
 
 namespace GossipCheck.DAO.Migrations
 {
-    public partial class Initial : Migration
+    public partial class initial : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -31,17 +29,6 @@ namespace GossipCheck.DAO.Migrations
                 {
                     table.PrimaryKey("PK_MbfcReports", x => x.Id);
                 });
-
-            System.Collections.Generic.IEnumerable<MbfcReport> defaultData = DefaultDataExtractor.ExtractData();
-            System.Reflection.PropertyInfo[] properties = typeof(MbfcReport).GetProperties();
-            foreach (MbfcReport report in defaultData)
-            {
-                migrationBuilder.InsertData(
-                    "MbfcReports",
-                    properties.Select(x => x.Name).ToArray(),
-                    properties.Select(x => x.GetValue(report).GetType().IsEnum ? (int)x.GetValue(report) : x.GetValue(report))
-                    .ToArray());
-            }
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

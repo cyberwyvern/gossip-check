@@ -9,7 +9,7 @@ namespace GossipCheck.DAO
 
         public GossipCheckDBContext(DbContextOptions<GossipCheckDBContext> options) : base(options)
         {
-            Database.Migrate();
+            this.Database.Migrate();
         }
     }
 }
