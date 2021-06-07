@@ -11,29 +11,29 @@ namespace GossipCheck.WebScraper
 {
     public class Startup
     {
-        private const string ScraperConfigurationSection = "ScraperServiceConfig";
-        private const string NLUServiceConfigurationSection = "NLUServiceConfig";
-        private const string MbfcServiceConfigurationSection = "MbfcServiceConfig";
+        private const string ArticleSearchConfigurationSection = "ArticleSearch";
+        private const string NLUServiceConfigurationSection = "NLUService";
+        private const string MbfcServiceConfigurationSection = "MbfcService";
 
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            this.Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            IConfigurationSection scraperConfig = Configuration.GetSection(ScraperConfigurationSection);
-            IConfigurationSection nluServiceConfig = Configuration.GetSection(NLUServiceConfigurationSection);
-            IConfigurationSection mbfcServiceConfig = Configuration.GetSection(MbfcServiceConfigurationSection);
+            var articleSearchConfig = this.Configuration.GetSection(ArticleSearchConfigurationSection);
+            var nluServiceConfig = this.Configuration.GetSection(NLUServiceConfigurationSection);
+            var mbfcServiceConfig = this.Configuration.GetSection(MbfcServiceConfigurationSection);
 
-            services.AddOptions<ScraperServiceConfig>().Bind(scraperConfig);
+            services.AddOptions<ArticleSearchEngineConfig>().Bind(articleSearchConfig);
             services.AddOptions<NLUServiceConfig>().Bind(nluServiceConfig);
             services.AddOptions<MbfcServiceConfig>().Bind(mbfcServiceConfig);
 
             services.AddTransient<INLUService, NLUService>();
-            services.AddTransient<IWebScraperService, WebScraperService>();
+            services.AddTransient<IArticleSearchEngine, ArticleSearchEngine>();
             services.AddTransient<IMbfcCrawler, MbfcCrawler>();
 
             services.AddControllers().AddJsonOptions(options =>

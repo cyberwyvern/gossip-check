@@ -11,10 +11,10 @@ namespace GossipCheck.WebScraper.Controllers
     public class WebScraperController : ControllerBase
     {
         private readonly INLUService nLUService;
-        private readonly IWebScraperService webScraper;
+        private readonly IArticleSearchEngine webScraper;
         private readonly IMbfcCrawler mbfcCrawler;
 
-        public WebScraperController(INLUService nLUService, IWebScraperService webScraper, IMbfcCrawler mbfcCrawler)
+        public WebScraperController(INLUService nLUService, IArticleSearchEngine webScraper, IMbfcCrawler mbfcCrawler)
         {
             this.nLUService = nLUService;
             this.webScraper = webScraper;
@@ -24,9 +24,9 @@ namespace GossipCheck.WebScraper.Controllers
         [HttpPost("extract-keywords")]
         public IActionResult ExtractKeywords(KeywordsExtractionRequest request)
         {
-            (Services.Language language, System.Collections.Generic.IEnumerable<string> keywords) = nLUService.ExtractKeywords(request.TextOrigin);
+            var keywords = this.nLUService.ExtractKeywords(request.TextOrigin, out var language);
 
-            return Ok(new KeywordsExtractionResponse
+            return this.Ok(new KeywordsExtractionResponse
             {
                 Language = language,
                 Keywords = keywords.ToArray()
@@ -36,9 +36,9 @@ namespace GossipCheck.WebScraper.Controllers
         [HttpPost("search-articles")]
         public async Task<IActionResult> SearchArticles(ArticleSearchRequest request)
         {
-            System.Collections.Generic.IEnumerable<Services.Models.Article> articles = await webScraper.SearchArticles(request.Language, request.Keywords);
+            var articles = await this.webScraper.SearchArticles(request.Keywords, request.Language);
 
-            return Ok(new ArticleSearchResponse
+            return this.Ok(new ArticleSearchResponse
             {
                 Articles = articles
             });
@@ -47,15 +47,15 @@ namespace GossipCheck.WebScraper.Controllers
         [HttpGet("mbfc-report")]
         public async Task<IActionResult> GetMbfcReport([FromQuery] string sourceUrl)
         {
-            var result = await mbfcCrawler.GetMbfcReport(sourceUrl);
+            var result = await this.mbfcCrawler.GetMbfcReport(sourceUrl);
 
             if (result == null)
             {
-                return NotFound();
+                return this.NotFound();
             }
             else
             {
-                return Ok(result);
+                return this.Ok(result);
             }
         }
     }

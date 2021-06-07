@@ -11,18 +11,18 @@ using System.Web;
 
 namespace GossipCheck.WebScraper.Services.Services
 {
-    public class WebScraperService : IWebScraperService
+    public class ArticleSearchEngine : IArticleSearchEngine
     {
-        private readonly ScraperServiceConfig config;
+        private readonly ArticleSearchEngineConfig config;
 
-        public WebScraperService(IOptions<ScraperServiceConfig> config)
+        public ArticleSearchEngine(IOptions<ArticleSearchEngineConfig> config)
         {
             this.config = config.Value;
         }
 
-        public async Task<IEnumerable<Article>> SearchArticles(Language? language, IEnumerable<string> keywords)
+        public async Task<IEnumerable<Article>> SearchArticles(IEnumerable<string> keywords, Language? language)
         {
-            Dictionary<string, string> queryStringDict = new Dictionary<string, string>
+            var queryStringDict = new Dictionary<string, string>
             {
                 { "q", HttpUtility.UrlEncode(string.Join(" ", keywords)) },
                 { "media", "True" }
@@ -33,25 +33,25 @@ namespace GossipCheck.WebScraper.Services.Services
                 queryStringDict.Add("lang", LanguageCodes.Codes[language.Value]);
             }
 
-            string query = string.Join("&", queryStringDict.Select(x => $"{x.Key}={x.Value}"));
+            var query = string.Join("&", queryStringDict.Select(x => $"{x.Key}={x.Value}"));
 
-            HttpClient client = new HttpClient();
-            HttpRequestMessage request = new HttpRequestMessage
+            var client = new HttpClient();
+            var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Get,
-                RequestUri = new Uri($"{config.ServiceUrl}?{query}"),
+                RequestUri = new Uri($"{this.config.ServiceUrl}?{query}"),
                 Headers =
                 {
-                    { "x-rapidapi-key", config.ApiKey },
-                    { "x-rapidapi-host", config.ServiceHost },
+                    { "x-rapidapi-key", this.config.ApiKey },
+                    { "x-rapidapi-host", this.config.ServiceHost },
                 },
             };
 
-            using HttpResponseMessage response = await client.SendAsync(request);
+            using var response = await client.SendAsync(request);
             response.EnsureSuccessStatusCode();
-            string body = await response.Content.ReadAsStringAsync();
+            var body = await response.Content.ReadAsStringAsync();
 
-            IEnumerable<Article> result = JToken.Parse(body)["articles"]
+            var result = JToken.Parse(body)["articles"]
                 .ToObject<ScraperArticleModel[]>()
                 .Select(x => new Article
                 {

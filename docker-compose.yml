@@ -5,8 +5,8 @@ services:
     image: ${CONTAINER_REGISTRY}/webscraper
     container_name: webscraper
     environment:
-      ScraperServiceConfig__ApiKey: ${SCRAPER_SERVICE_APIKEY}
-      NLUServiceConfig__ApiKey: ${NLU_SERVICE_APIKEY}
+      ArticleSearch__ApiKey: ${ARTICLE_SEARCH_APIKEY}
+      NLUService__ApiKey: ${NLU_SERVICE_APIKEY}
     ports:
       - "5001:80"
 
