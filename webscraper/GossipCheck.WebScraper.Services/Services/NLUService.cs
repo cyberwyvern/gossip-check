@@ -21,14 +21,14 @@ namespace GossipCheck.WebScraper.Services.Services
         {
             this.config = config.Value;
 
-            IamAuthenticator authenticator = new IamAuthenticator(this.config.ApiKey);
-            watson = new NaturalLanguageUnderstandingService(ApiVersion, authenticator);
-            watson.SetServiceUrl(this.config.ServiceUrl);
+            var authenticator = new IamAuthenticator(this.config.ApiKey);
+            this.watson = new NaturalLanguageUnderstandingService(ApiVersion, authenticator);
+            this.watson.SetServiceUrl(this.config.ServiceUrl);
         }
 
         public (Language, IEnumerable<string>) ExtractKeywords(string origin)
         {
-            Features features = new Features
+            var features = new Features
             {
                 Keywords = new KeywordsOptions
                 {
@@ -38,14 +38,14 @@ namespace GossipCheck.WebScraper.Services.Services
                 }
             };
 
-            IBM.Cloud.SDK.Core.Http.DetailedResponse<AnalysisResults> result = origin.IsUrl()
-                ? watson.Analyze(features, url: origin)
-                : watson.Analyze(features, text: origin);
+            var result = origin.IsUrl()
+                ? this.watson.Analyze(features, url: origin)
+                : this.watson.Analyze(features, text: origin);
 
             if (LanguageCodes.Codes.ContainsValue(result.Result.Language))
             {
-                Language language = LanguageCodes.Codes.First(x => x.Value == result.Result.Language).Key;
-                string[] keywords = result.Result.Keywords.Select(x => x.Text).ToArray();
+                var language = LanguageCodes.Codes.First(x => x.Value == result.Result.Language).Key;
+                var keywords = result.Result.Keywords.Select(x => x.Text).ToArray();
 
                 return (language, keywords);
             }

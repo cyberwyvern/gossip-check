@@ -36,7 +36,7 @@ namespace GossipCheck.WebScraper.Services.Services
         public MbfcCrawler(IOptions<MbfcServiceConfig> config)
         {
             this.config = config.Value;
-            client = new HttpClient
+            this.client = new HttpClient
             {
                 BaseAddress = new Uri(config.Value.ServiceUrl)
             };
@@ -48,7 +48,7 @@ namespace GossipCheck.WebScraper.Services.Services
             {
                 try
                 {
-                    return (await AttemptGetReport(url)).ToMbfcReport();
+                    return (await this.AttemptGetReport(url)).ToMbfcReport();
                 }
                 catch (HttpRequestException)
                 {
@@ -65,21 +65,21 @@ namespace GossipCheck.WebScraper.Services.Services
 
         private async Task<Dictionary<string, string>> AttemptGetReport(string url)
         {
-            var hostName = GetHostName(url);
-            await RetrieveSearchPage(hostName);
-            var reportUrls = SearchReportPages(hostName)
-                .Take(config.SearchVisits)
+            var hostName = this.GetHostName(url);
+            await this.RetrieveSearchPage(hostName);
+            var reportUrls = this.SearchReportPages(hostName)
+                .Take(this.config.SearchVisits)
                 .ToList();
 
             var urlIndex = 0;
             string reportPageUrl = null;
             while (reportPageUrl == null && urlIndex < reportUrls.Count())
             {
-                reportPage?.Dispose();
-                reportPage = null;
+                this.reportPage?.Dispose();
+                this.reportPage = null;
 
-                await RetrieveReportPage(reportUrls[urlIndex]);
-                if (ValidateSourceOnReportPage(hostName))
+                await this.RetrieveReportPage(reportUrls[urlIndex]);
+                if (this.ValidateSourceOnReportPage(hostName))
                 {
                     reportPageUrl = reportUrls[urlIndex];
                 }
@@ -92,8 +92,8 @@ namespace GossipCheck.WebScraper.Services.Services
                 throw new MbfcParserException("Invalid report page");
             }
 
-            var report = GetReportDictionary();
-            foreach (var kv in GetReportDictionaryFromImages())
+            var report = this.GetReportDictionary();
+            foreach (var kv in this.GetReportDictionaryFromImages())
             {
                 if (!report.ContainsKey(kv.Key))
                 {
@@ -109,7 +109,7 @@ namespace GossipCheck.WebScraper.Services.Services
 
         private async Task RetrieveSearchPage(string host)
         {
-            var response = await client.GetAsync($"?s={HttpUtility.UrlEncode(host)}");
+            var response = await this.client.GetAsync($"?s={HttpUtility.UrlEncode(host)}");
             response.EnsureSuccessStatusCode();
             var html = await response.Content.ReadAsStringAsync();
 
@@ -119,7 +119,7 @@ namespace GossipCheck.WebScraper.Services.Services
 
         private async Task RetrieveReportPage(string reportPageUrl)
         {
-            var response = await client.GetAsync(reportPageUrl);
+            var response = await this.client.GetAsync(reportPageUrl);
             response.EnsureSuccessStatusCode();
             var html = await response.Content.ReadAsStringAsync();
 
@@ -129,13 +129,13 @@ namespace GossipCheck.WebScraper.Services.Services
 
         private Dictionary<string, string> GetReportDictionary()
         {
-            var detailedReport = reportPage.QuerySelectorAll("p")
+            var detailedReport = this.reportPage.QuerySelectorAll("p")
                 .Select(x => x.TextContent)
-                .FirstOrDefault(x => reportFieldsList.Any(f => x.Contains(f)));
+                .FirstOrDefault(x => this.reportFieldsList.Any(f => x.Contains(f)));
 
             var matches = Regex.Matches(
                 detailedReport ?? string.Empty,
-                @$".+?(?={string.Join(":|", reportFieldsList)}|$)",
+                @$".+?(?={string.Join(":|", this.reportFieldsList)}|$)",
                 RegexOptions.IgnoreCase | RegexOptions.Multiline | RegexOptions.Compiled);
 
             return matches
@@ -146,7 +146,7 @@ namespace GossipCheck.WebScraper.Services.Services
 
         private Dictionary<string, string> GetReportDictionaryFromImages()
         {
-            var factualReportingImage = reportPage.QuerySelector(@"img[alt*=""Factual Reporting""]");
+            var factualReportingImage = this.reportPage.QuerySelector(@"img[alt*=""Factual Reporting""]");
 
             var dictionary = new Dictionary<string, string>();
             if (factualReportingImage != null)
@@ -161,9 +161,9 @@ namespace GossipCheck.WebScraper.Services.Services
 
         private IEnumerable<string> SearchReportPages(string host)
         {
-            var reportPages = searchPage
+            var reportPages = this.searchPage
                 .QuerySelectorAll(@"a[href][title][rel=""bookmark""]")
-                .Select(x => new Uri(new Uri(config.ServiceUrl), x.GetAttribute("href")).ToString())
+                .Select(x => new Uri(new Uri(this.config.ServiceUrl), x.GetAttribute("href")).ToString())
                 .ToList();
 
             var bestMatch = reportPages.FirstOrDefault(x => Regex.IsMatch(host, Regex.Replace(x, @"\W|", ".?"), RegexOptions.IgnoreCase));
@@ -186,14 +186,14 @@ namespace GossipCheck.WebScraper.Services.Services
 
         private bool ValidateSourceOnReportPage(string host)
         {
-            return reportPage?.QuerySelector($@"a[href*=""{host}""]") != null;
+            return this.reportPage?.QuerySelector($@"a[href*=""{host}""]") != null;
         }
 
         public void Dispose()
         {
-            client.Dispose();
-            searchPage?.Dispose();
-            reportPage?.Dispose();
+            this.client.Dispose();
+            this.searchPage?.Dispose();
+            this.reportPage?.Dispose();
         }
     }
 }

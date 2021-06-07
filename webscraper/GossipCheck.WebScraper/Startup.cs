@@ -17,16 +17,16 @@ namespace GossipCheck.WebScraper
 
         public Startup(IConfiguration configuration)
         {
-            Configuration = configuration;
+            this.Configuration = configuration;
         }
 
         public IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            IConfigurationSection scraperConfig = Configuration.GetSection(ScraperConfigurationSection);
-            IConfigurationSection nluServiceConfig = Configuration.GetSection(NLUServiceConfigurationSection);
-            IConfigurationSection mbfcServiceConfig = Configuration.GetSection(MbfcServiceConfigurationSection);
+            var scraperConfig = this.Configuration.GetSection(ScraperConfigurationSection);
+            var nluServiceConfig = this.Configuration.GetSection(NLUServiceConfigurationSection);
+            var mbfcServiceConfig = this.Configuration.GetSection(MbfcServiceConfigurationSection);
 
             services.AddOptions<ScraperServiceConfig>().Bind(scraperConfig);
             services.AddOptions<NLUServiceConfig>().Bind(nluServiceConfig);

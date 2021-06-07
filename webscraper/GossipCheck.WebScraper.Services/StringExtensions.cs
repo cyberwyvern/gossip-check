@@ -8,7 +8,7 @@ namespace GossipCheck.WebScraper
     {
         public static bool IsUrl(this string text)
         {
-            return Uri.TryCreate(text, UriKind.Absolute, out Uri uriResult)
+            return Uri.TryCreate(text, UriKind.Absolute, out var uriResult)
                 && (uriResult.Scheme == Uri.UriSchemeHttp || uriResult.Scheme == Uri.UriSchemeHttps);
         }
 

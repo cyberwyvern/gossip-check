@@ -9,14 +9,15 @@ namespace GossipCheck.WebScraper.Services.Mapping
     {
         public static MbfcReport ToMbfcReport(this Dictionary<string, string> keyValues)
         {
-            var report = new MbfcReport();
+            var report = new MbfcReport
+            {
+                Source = keyValues.GetValueOrDefault(nameof(MbfcReport.Source)),
+                PageUrl = keyValues.GetValueOrDefault(nameof(MbfcReport.PageUrl)),
 
-            report.Source = keyValues.GetValueOrDefault(nameof(MbfcReport.Source));
-            report.PageUrl = keyValues.GetValueOrDefault(nameof(MbfcReport.PageUrl));
-
-            report.Reasoning =
+                Reasoning =
                 keyValues.GetValueOrDefault(nameof(MbfcReport.Reasoning))
-                ?? keyValues.GetValueOrDefault("QuestionableReasoning");
+                ?? keyValues.GetValueOrDefault("QuestionableReasoning")
+            };
 
             var countryString =
                 keyValues.GetValueOrDefault(nameof(MbfcReport.Country))
@@ -28,7 +29,7 @@ namespace GossipCheck.WebScraper.Services.Mapping
 
             report.Country = Regex.Match(countryString ?? string.Empty, @".+?(?=\s\(|$)")?.Value;
 
-            if (int.TryParse(pressFreedomRankString.Split('/')?[0], out int pressFreedomRank))
+            if (int.TryParse(pressFreedomRankString.Split('/')?[0], out var pressFreedomRank))
             {
                 report.WorldPressFreedomRank = pressFreedomRank;
             }
