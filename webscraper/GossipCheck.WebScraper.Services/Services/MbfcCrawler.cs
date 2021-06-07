@@ -17,6 +17,11 @@ namespace GossipCheck.WebScraper.Services.Services
 {
     public class MbfcCrawler : IMbfcCrawler, IDisposable
     {
+        private const string detailedReportSelector = "p";
+        private const string factualReportingImageSelector = @"img[alt*=""Factual Reporting""]";
+        private const string reportPageUrlSelector = @"a[href][title][rel=""bookmark""]";
+        private const string sourceUrlSelector = @"a[href*=""{0}""]";
+
         private readonly HttpClient client;
         private readonly MbfcServiceConfig config;
         private readonly string[] reportFieldsList = new[] {
@@ -44,67 +49,55 @@ namespace GossipCheck.WebScraper.Services.Services
 
         public async Task<MbfcReport> GetMbfcReport(string url)
         {
+            url.EnsureWebUrl();
+
             for (var i = 0; i < this.config.Attempts; i++)
             {
                 try
                 {
-                    return (await this.AttemptGetReport(url)).ToMbfcReport();
+                    return (await this.AttemptGetReport(new Uri(url).Host)).ToMbfcReport();
                 }
                 catch (HttpRequestException)
                 {
                     await Task.Delay(this.config.RetryInterval);
                 }
-                catch
-                {
-                    throw new MbfcParserException();
-                }
             }
 
-            throw new MbfcRequestException();
+            throw new MbfcCrawlerException($"Could not get response from {this.config.ServiceUrl}");
         }
 
-        private async Task<Dictionary<string, string>> AttemptGetReport(string url)
+        private async Task<Dictionary<string, string>> AttemptGetReport(string host)
         {
-            var hostName = this.GetHostName(url);
-            await this.RetrieveSearchPage(hostName);
-            var reportUrls = this.SearchReportPages(hostName)
-                .Take(this.config.SearchVisits)
-                .ToList();
+            await this.RetrieveSearchPage(host);
+            var reportUrls = this.SearchReportPages(host).Take(this.config.SearchVisits).ToList();
 
-            var urlIndex = 0;
             string reportPageUrl = null;
-            while (reportPageUrl == null && urlIndex < reportUrls.Count())
+            foreach (var url in reportUrls)
             {
-                this.reportPage?.Dispose();
-                this.reportPage = null;
-
-                await this.RetrieveReportPage(reportUrls[urlIndex]);
-                if (this.ValidateSourceOnReportPage(hostName))
+                await this.RetrieveReportPage(url);
+                if (this.ValidateSourceOnReportPage(host))
                 {
-                    reportPageUrl = reportUrls[urlIndex];
-                }
-
-                urlIndex++;
-            }
-
-            if (reportPageUrl == null)
-            {
-                throw new MbfcParserException("Invalid report page");
-            }
-
-            var report = this.GetReportDictionary();
-            foreach (var kv in this.GetReportDictionaryFromImages())
-            {
-                if (!report.ContainsKey(kv.Key))
-                {
-                    report[kv.Key] = kv.Value;
+                    reportPageUrl = url;
+                    break;
                 }
             }
 
-            report["PageUrl"] = reportPageUrl;
-            report["Source"] = hostName;
-
-            return report;
+            try
+            {
+                return new Dictionary<string, string>
+                {
+                    { "PageUrl", reportPageUrl ?? throw new MbfcCrawlerException($"Report page not found for {host}") },
+                    { "Source", host }
+                }
+                .Union(this.GetReportDictionary())
+                .Union(this.GetReportDictionaryFromImages())
+                .GroupBy(x => x.Key)
+                .ToDictionary(x => x.Key, x => x.First().Value);
+            }
+            catch (Exception ex)
+            {
+                throw new MbfcCrawlerException($"Parsing error for {host}", ex);
+            }
         }
 
         private async Task RetrieveSearchPage(string host)
@@ -119,6 +112,11 @@ namespace GossipCheck.WebScraper.Services.Services
 
         private async Task RetrieveReportPage(string reportPageUrl)
         {
+            if (this.reportPage != null)
+            {
+                this.reportPage.Dispose();
+            }
+
             var response = await this.client.GetAsync(reportPageUrl);
             response.EnsureSuccessStatusCode();
             var html = await response.Content.ReadAsStringAsync();
@@ -129,7 +127,7 @@ namespace GossipCheck.WebScraper.Services.Services
 
         private Dictionary<string, string> GetReportDictionary()
         {
-            var detailedReport = this.reportPage.QuerySelectorAll("p")
+            var detailedReport = this.reportPage.QuerySelectorAll(detailedReportSelector)
                 .Select(x => x.TextContent)
                 .FirstOrDefault(x => this.reportFieldsList.Any(f => x.Contains(f)));
 
@@ -146,7 +144,7 @@ namespace GossipCheck.WebScraper.Services.Services
 
         private Dictionary<string, string> GetReportDictionaryFromImages()
         {
-            var factualReportingImage = this.reportPage.QuerySelector(@"img[alt*=""Factual Reporting""]");
+            var factualReportingImage = this.reportPage.QuerySelector(factualReportingImageSelector);
 
             var dictionary = new Dictionary<string, string>();
             if (factualReportingImage != null)
@@ -162,7 +160,7 @@ namespace GossipCheck.WebScraper.Services.Services
         private IEnumerable<string> SearchReportPages(string host)
         {
             var reportPages = this.searchPage
-                .QuerySelectorAll(@"a[href][title][rel=""bookmark""]")
+                .QuerySelectorAll(reportPageUrlSelector)
                 .Select(x => new Uri(new Uri(this.config.ServiceUrl), x.GetAttribute("href")).ToString())
                 .ToList();
 
@@ -176,17 +174,9 @@ namespace GossipCheck.WebScraper.Services.Services
             return reportPages;
         }
 
-        private string GetHostName(string url)
-        {
-            var sourceUrl = new Uri(url, UriKind.RelativeOrAbsolute);
-            return sourceUrl.IsAbsoluteUri
-                ? sourceUrl.DnsSafeHost
-                : sourceUrl.ToString();
-        }
-
         private bool ValidateSourceOnReportPage(string host)
         {
-            return this.reportPage?.QuerySelector($@"a[href*=""{host}""]") != null;
+            return this.reportPage?.QuerySelector(string.Format(sourceUrlSelector, host)) != null;
         }
 
         public void Dispose()

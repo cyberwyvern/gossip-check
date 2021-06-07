@@ -4,6 +4,6 @@ namespace GossipCheck.WebScraper.Services.Services
 {
     public interface INLUService
     {
-        (Language, IEnumerable<string>) ExtractKeywords(string origin);
+        IEnumerable<string> ExtractKeywords(string textOrUrl, out Language language);
     }
 }

@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 
 namespace GossipCheck.WebScraper.Services.Services
 {
-    public interface IWebScraperService
+    public interface IArticleSearchEngine
     {
-        Task<IEnumerable<Article>> SearchArticles(Language? language, IEnumerable<string> keywords);
+        Task<IEnumerable<Article>> SearchArticles(IEnumerable<string> keywords, Language? language);
     }
 }

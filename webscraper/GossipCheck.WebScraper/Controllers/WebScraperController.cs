@@ -11,10 +11,10 @@ namespace GossipCheck.WebScraper.Controllers
     public class WebScraperController : ControllerBase
     {
         private readonly INLUService nLUService;
-        private readonly IWebScraperService webScraper;
+        private readonly IArticleSearchEngine webScraper;
         private readonly IMbfcCrawler mbfcCrawler;
 
-        public WebScraperController(INLUService nLUService, IWebScraperService webScraper, IMbfcCrawler mbfcCrawler)
+        public WebScraperController(INLUService nLUService, IArticleSearchEngine webScraper, IMbfcCrawler mbfcCrawler)
         {
             this.nLUService = nLUService;
             this.webScraper = webScraper;
@@ -24,7 +24,7 @@ namespace GossipCheck.WebScraper.Controllers
         [HttpPost("extract-keywords")]
         public IActionResult ExtractKeywords(KeywordsExtractionRequest request)
         {
-            (var language, var keywords) = this.nLUService.ExtractKeywords(request.TextOrigin);
+            var keywords = this.nLUService.ExtractKeywords(request.TextOrigin, out var language);
 
             return this.Ok(new KeywordsExtractionResponse
             {
@@ -36,7 +36,7 @@ namespace GossipCheck.WebScraper.Controllers
         [HttpPost("search-articles")]
         public async Task<IActionResult> SearchArticles(ArticleSearchRequest request)
         {
-            var articles = await this.webScraper.SearchArticles(request.Language, request.Keywords);
+            var articles = await this.webScraper.SearchArticles(request.Keywords, request.Language);
 
             return this.Ok(new ArticleSearchResponse
             {

@@ -26,7 +26,7 @@ namespace GossipCheck.WebScraper.Services.Services
             this.watson.SetServiceUrl(this.config.ServiceUrl);
         }
 
-        public (Language, IEnumerable<string>) ExtractKeywords(string origin)
+        public IEnumerable<string> ExtractKeywords(string textOrUrl, out Language language)
         {
             var features = new Features
             {
@@ -38,16 +38,16 @@ namespace GossipCheck.WebScraper.Services.Services
                 }
             };
 
-            var result = origin.IsUrl()
-                ? this.watson.Analyze(features, url: origin)
-                : this.watson.Analyze(features, text: origin);
+            var result = textOrUrl.IsWebUrl()
+                ? this.watson.Analyze(features, url: textOrUrl)
+                : this.watson.Analyze(features, text: textOrUrl);
 
             if (LanguageCodes.Codes.ContainsValue(result.Result.Language))
             {
-                var language = LanguageCodes.Codes.First(x => x.Value == result.Result.Language).Key;
+                language = LanguageCodes.Codes.First(x => x.Value == result.Result.Language).Key;
                 var keywords = result.Result.Keywords.Select(x => x.Text).ToArray();
 
-                return (language, keywords);
+                return keywords;
             }
             else
             {

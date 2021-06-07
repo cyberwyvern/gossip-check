@@ -11,16 +11,16 @@ using System.Web;
 
 namespace GossipCheck.WebScraper.Services.Services
 {
-    public class WebScraperService : IWebScraperService
+    public class ArticleSearchEngine : IArticleSearchEngine
     {
-        private readonly ScraperServiceConfig config;
+        private readonly ArticleSearchEngineConfig config;
 
-        public WebScraperService(IOptions<ScraperServiceConfig> config)
+        public ArticleSearchEngine(IOptions<ArticleSearchEngineConfig> config)
         {
             this.config = config.Value;
         }
 
-        public async Task<IEnumerable<Article>> SearchArticles(Language? language, IEnumerable<string> keywords)
+        public async Task<IEnumerable<Article>> SearchArticles(IEnumerable<string> keywords, Language? language)
         {
             var queryStringDict = new Dictionary<string, string>
             {

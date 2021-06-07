@@ -1,6 +1,6 @@
 ﻿namespace GossipCheck.WebScraper.Services.ConfigurationOptionModels
 {
-    public class ScraperServiceConfig
+    public class ArticleSearchEngineConfig
     {
         public string ServiceHost { get; set; }
 
