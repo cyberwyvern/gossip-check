@@ -1,6 +1,6 @@
 ﻿namespace GossipCheck.API.Models
 {
-    public class ArticleVerificationRequest
+    public class ArticleAnalysisRequest
     {
         public string TextOrigin { get; set; }
     }

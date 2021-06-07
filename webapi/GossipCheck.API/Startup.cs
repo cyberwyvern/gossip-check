@@ -31,7 +31,7 @@ namespace GossipCheck.API
         {
             var stanceDetectorServiceConfig = this.Configuration.GetSection(StanceDetectorConfigurationSection);
             var mbfcServiceConfig = this.Configuration.GetSection(MbfcServiceConfigurationSection);
-            services.AddOptions<StanceDetectorServiceConfig>().Bind(stanceDetectorServiceConfig);
+            services.AddOptions<StanceDetectionServiceConfig>().Bind(stanceDetectorServiceConfig);
             services.AddOptions<MbfcServiceConfig>().Bind(mbfcServiceConfig);
 
             services.AddDbContext<GossipCheckDBContext>(options =>
@@ -40,9 +40,9 @@ namespace GossipCheck.API
             });
 
             services.AddScoped<IGossipCheckUnitOfWork, GossipCheckUnitOfWork>();
-            services.AddTransient<IMbfcFacade, MbfcFacade>();
-            services.AddTransient<IReputabilityAlgorithm, ReputabilityAlgorithm>();
-            services.AddTransient<IStanceDetectorFacade, StanceDetectorFacade>();
+            services.AddTransient<IMbfcReportingService, MbfcReportingService>();
+            services.AddTransient<IFakeDetectionAlgorithm, FakeDetectionAlgorithm>();
+            services.AddTransient<IStanceDetectionService, StanceDetectionService>();
 
             services.AddControllers().AddNewtonsoftJson(options =>
             {

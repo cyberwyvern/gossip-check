@@ -1,6 +1,6 @@
 ﻿namespace GossipCheck.BLL.ConfigurationModels
 {
-    public class StanceDetectorServiceConfig
+    public class StanceDetectionServiceConfig
     {
         public string WebScraperUrl { get; set; }
 

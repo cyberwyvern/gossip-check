@@ -13,13 +13,13 @@ using System.Web;
 
 namespace GossipCheck.BLL.Services
 {
-    public class MbfcFacade : IMbfcFacade, IDisposable
+    public class MbfcReportingService : IMbfcReportingService, IDisposable
     {
         private readonly HttpClient client;
         private readonly MbfcServiceConfig config;
         private readonly IGossipCheckUnitOfWork uow;
 
-        public MbfcFacade(IOptions<MbfcServiceConfig> config, IGossipCheckUnitOfWork uow)
+        public MbfcReportingService(IOptions<MbfcServiceConfig> config, IGossipCheckUnitOfWork uow)
         {
             this.config = config.Value;
             this.uow = uow;
