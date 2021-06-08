@@ -22,6 +22,7 @@ services:
     environment:
       StanceDetector__WebScraperUrl: http://host.docker.internal:5001
       StanceDetector__StanceDetectionAiUrl: http://host.docker.internal:5002
+      MbfcService__ServiceUrl: http://host.docker.internal:5001
       ConnectionStrings__DBconnection: ${DB_CONNECTION}
     ports:
       - "5003:80"
