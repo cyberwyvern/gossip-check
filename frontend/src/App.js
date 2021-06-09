@@ -1,7 +1,6 @@
 import { MainPage } from '@pages/MainPage';
 import { Alert } from "@shared/Alert";
 import { Header } from '@shared/Header';
-import { LoadingProgress } from '@shared/LoadingProgress';
 import { observer } from 'mobx-react';
 import { React } from 'react';
 import {
@@ -16,7 +15,6 @@ function App() {
     <Router>
       <div className={styles['root']}>
         <Header />
-        <LoadingProgress />
         <div className={styles['content']}>
           <div className={styles['page-content']}>
             <Switch>

@@ -1,6 +1,7 @@
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
 import Typography from '@material-ui/core/Typography';
+import { LoadingProgress } from '@shared/LoadingProgress';
 import React from 'react';
 
 export default function Header() {
@@ -11,6 +12,7 @@ export default function Header() {
           Gossip Checker
         </Typography>
       </Toolbar>
+      <LoadingProgress />
     </AppBar>
   );
 }

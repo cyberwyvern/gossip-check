@@ -1,0 +1,11 @@
+.root {
+  width: 80%;
+  margin: 0 auto;
+}
+
+.search-field {
+  display: flex;
+  flex-direction: row;
+  margin: 40px 0;
+  gap: 10px;
+}
