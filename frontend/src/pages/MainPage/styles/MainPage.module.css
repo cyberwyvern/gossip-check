@@ -1,0 +1,12 @@
+.root {
+  width: 80%;
+  margin: 0 auto;
+}
+
+.search-field > form {
+  display: flex;
+  flex-direction: row;
+  margin: 40px 0;
+  gap: 10px;
+  align-items: flex-start;
+}

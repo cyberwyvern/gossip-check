@@ -34,6 +34,15 @@ namespace GossipCheck.API
             services.AddOptions<StanceDetectionServiceConfig>().Bind(stanceDetectorServiceConfig);
             services.AddOptions<MbfcServiceConfig>().Bind(mbfcServiceConfig);
 
+            var origins = this.Configuration.GetSection("AllowedOrigins").Get<string[]>();
+            services.AddCors(options => options.AddPolicy("CorsPolicy", builder =>
+            {
+                builder.WithOrigins(origins)
+                    .AllowAnyHeader()
+                    .AllowAnyMethod()
+                    .AllowCredentials();
+            }));
+
             services.AddDbContext<GossipCheckDBContext>(options =>
             {
                 options.UseSqlServer(this.Configuration.GetConnectionString("DBconnection"));
@@ -63,6 +72,7 @@ namespace GossipCheck.API
             }
 
             app.UseRouting();
+            app.UseCors("CorsPolicy");
 
             app.UseEndpoints(endpoints =>
             {
