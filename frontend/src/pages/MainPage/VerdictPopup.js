@@ -55,7 +55,7 @@ const textMap = {
   'HardToSay': 'It\'s hard to say whether this article true or fake',
   'LikelyFake': 'This article is likely fake',
   'MostLikelyFake': 'This article is most likely fake',
-  'UnableToDetermine': 'Can\'t find related data so unable to determine verity of this article'
+  'UnableToDetermine': 'Can\'t find related data from credible sources. So unable to determine verity of this article'
 }
 
 export default function VerdictPopup({ verdict }) {
