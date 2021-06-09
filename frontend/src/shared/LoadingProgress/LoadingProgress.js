@@ -5,12 +5,9 @@ import React, { useContext } from 'react';
 
 function LoadingProgress() {
   const store = useContext(StoreContext).loadingProgressStore;
+  const visibility = store.isLoadingInProggress ? 'visible' : 'hidden';
 
-  return (
-    <div>
-      {store.isLoadingInProggress && <LinearProgress color="secondary" />}
-    </div>
-  );
+  return <LinearProgress color="secondary" style={{ visibility: visibility }} />
 }
 
 export default observer(LoadingProgress);

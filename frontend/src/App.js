@@ -1,16 +1,22 @@
 import { MainPage } from '@pages/MainPage';
 import { Alert } from "@shared/Alert";
-import { observer } from "mobx-react";
+import { Header } from '@shared/Header';
+import { LoadingProgress } from '@shared/LoadingProgress';
+import { observer } from 'mobx-react';
+import { React } from 'react';
 import {
   BrowserRouter as Router,
   Route, Switch
 } from "react-router-dom";
 import styles from './App.module.css';
 
+
 function App() {
   return (
     <Router>
       <div className={styles['root']}>
+        <Header />
+        <LoadingProgress />
         <div className={styles['content']}>
           <div className={styles['page-content']}>
             <Switch>
