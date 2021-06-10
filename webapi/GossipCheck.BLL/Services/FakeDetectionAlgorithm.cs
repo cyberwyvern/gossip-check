@@ -48,8 +48,7 @@ namespace GossipCheck.BLL.Services
                 .Where(x => x.Stance != Stance.Unrelated)
                 .ToList();
 
-            var highFactualityScore = this.reputationScores[FactualReporting.High];
-            if (significantEntries.Count(x => this.reputationScores[x.Factuality] >= highFactualityScore) < 3)
+            if (!significantEntries.Any(x => x.Factuality == FactualReporting.High))
             {
                 throw new InsufficientDataAmountException();
             }
