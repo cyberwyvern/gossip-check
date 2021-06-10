@@ -1,5 +1,4 @@
 ﻿using GossipCheck.API.Models;
-using GossipCheck.BLL.Extensions;
 using GossipCheck.BLL.Models;
 using GossipCheck.DAO.Entities;
 

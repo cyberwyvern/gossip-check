@@ -59,7 +59,7 @@ namespace GossipCheck.BLL.Services
                 .Zip(significantEntries, (reputation, report) => reputation * this.stanceFactor[report.Stance])
                 .Sum() + 1 / 2;
 
-            return verdictMinimalScores
+            return this.verdictMinimalScores
                 .OrderByDescending(x => x.Value)
                 .First(kv => kv.Value <= score)
                 .Key;

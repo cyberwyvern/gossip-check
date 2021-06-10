@@ -1,4 +1,5 @@
 ﻿using GossipCheck.BLL.ConfigurationModels;
+using GossipCheck.BLL.Extensions;
 using GossipCheck.BLL.Interface;
 using GossipCheck.BLL.Models;
 using Microsoft.Extensions.Options;
@@ -34,7 +35,7 @@ namespace GossipCheck.BLL.Services
 
             var requestObject = new StanceDetectionRequest
             {
-                Headline = string.Join(' ', keywordsResponse.Keywords),
+                Headline = textOrigin.IsWebUrl() ? string.Join(' ', keywordsResponse.Keywords) : textOrigin,
                 Bodies = articlesResponse.Articles
                     .GroupBy(x => x.Link)
                     .Select(x => x.First())
