@@ -2,10 +2,10 @@
 {
     public enum Verdict
     {
-        UnableToDetermine,
+        CouldNotDetermine,
         MostLikelyFake,
         LikelyFake,
-        HardToSay,
+        Questionable,
         LikelyTrue,
         MostLikelyTrue
     }

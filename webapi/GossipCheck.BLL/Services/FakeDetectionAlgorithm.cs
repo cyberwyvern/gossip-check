@@ -1,4 +1,5 @@
-﻿using GossipCheck.BLL.Extensions;
+﻿using GossipCheck.BLL.Exceptions;
+using GossipCheck.BLL.Extensions;
 using GossipCheck.BLL.Interface;
 using GossipCheck.BLL.Models;
 using GossipCheck.DAO.Entities;
@@ -17,57 +18,51 @@ namespace GossipCheck.BLL.Services
             [Stance.Discuss] = .25
         };
 
+        //sigmoid: 10/(1+e^-((x-2.5)))
+        //x: 0, 1, 2, 3, 4, 5
         private readonly Dictionary<FactualReporting, double> reputationScores = new Dictionary<FactualReporting, double>
         {
-            [FactualReporting.VeryHigh] = 1,
-            [FactualReporting.High] = .8,
-            [FactualReporting.MostlyFactual] = .6,
-            [FactualReporting.Mixed] = .4,
-            [FactualReporting.Low] = .2,
-            [FactualReporting.VeryLow] = 0,
+            [FactualReporting.VeryHigh] = 9.241,
+            [FactualReporting.High] = 8.176,
+            [FactualReporting.MostlyFactual] = 6.225,
+            [FactualReporting.Mixed] = 3.775,
+            [FactualReporting.Low] = 1.824,
+            [FactualReporting.VeryLow] = .759,
         };
 
+        //sigmoid: 1/(1+e^-((x-1.5)))
+        //x: 0, 1, 2, 3
         private readonly Dictionary<Verdict, double> verdictMinimalScores = new Dictionary<Verdict, double>
         {
             [Verdict.MostLikelyFake] = 0,
-            [Verdict.LikelyFake] = .2,
-            [Verdict.HardToSay] = .4,
-            [Verdict.LikelyTrue] = .6,
-            [Verdict.MostLikelyTrue] = .8,
+            [Verdict.LikelyFake] = .1824,
+            [Verdict.Questionable] = .3775,
+            [Verdict.LikelyTrue] = .6225,
+            [Verdict.MostLikelyTrue] = .8176,
         };
 
-        public Verdict GetVerdict(IEnumerable<KeyValuePair<MbfcReport, Stance>> reportStances)
+        public Verdict GetVerdict(IEnumerable<RelatedArticleReport> relatedArticles)
         {
-            var significantEntries = reportStances
-                .Where(x => x.Key.FactualReporting != FactualReporting.NA)
-                .Where(x => x.Value != Stance.Unrelated)
+            var significantEntries = relatedArticles
+                .Where(x => x.Factuality != FactualReporting.NA)
+                .Where(x => x.Stance != Stance.Unrelated)
                 .ToList();
 
-            if (significantEntries.Count < 3)
+            var highFactualityScore = this.reputationScores[FactualReporting.High];
+            if (significantEntries.Count(x => this.reputationScores[x.Factuality] >= highFactualityScore) < 3)
             {
-                return Verdict.UnableToDetermine;
+                throw new InsufficientDataAmountException();
             }
 
-            var score = significantEntries.Select(x => this.ExtractReputationFromReport(x.Key))
+            var score = significantEntries.Select(x => this.reputationScores[x.Factuality])
                 .Softmax()
-                .Zip(significantEntries, (reputation, reportStance) => new { Stance = reportStance.Value, Reputation = reputation })
-                .Select(x => x.Reputation * this.stanceFactor[x.Stance])
+                .Zip(significantEntries, (reputation, report) => reputation * this.stanceFactor[report.Stance])
                 .Sum() + 1 / 2;
 
-            foreach (var kv in this.verdictMinimalScores.OrderByDescending(x => x.Value))
-            {
-                if (kv.Value <= score)
-                {
-                    return kv.Key;
-                }
-            }
-
-            return Verdict.UnableToDetermine;
-        }
-
-        private double ExtractReputationFromReport(MbfcReport report)
-        {
-            return this.reputationScores[report.FactualReporting];
+            return verdictMinimalScores
+                .OrderByDescending(x => x.Value)
+                .First(kv => kv.Value <= score)
+                .Key;
         }
     }
 }

@@ -23,7 +23,7 @@ namespace GossipCheck.BLL.Services
             this.client = new HttpClient();
         }
 
-        public async Task<IEnumerable<KeyValuePair<string, Stance>>> GetSourceStances(string textOrigin)
+        public async Task<IEnumerable<KeyValuePair<string, Stance>>> GetArticleStances(string textOrigin)
         {
             var keywordsResponse = await this.GetKeywords(textOrigin);
             var articlesResponse = await this.SearchArticles(new ArticleSearchRequest

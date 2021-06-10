@@ -6,6 +6,6 @@ namespace GossipCheck.BLL.Interface
 {
     public interface IStanceDetectionService
     {
-        public Task<IEnumerable<KeyValuePair<string, Stance>>> GetSourceStances(string textOrigin);
+        public Task<IEnumerable<KeyValuePair<string, Stance>>> GetArticleStances(string textOrigin);
     }
 }

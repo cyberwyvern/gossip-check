@@ -1,5 +1,6 @@
 ﻿using GossipCheck.API.Extensions;
 using GossipCheck.API.Models;
+using GossipCheck.BLL.Exceptions;
 using GossipCheck.BLL.Extensions;
 using GossipCheck.BLL.Interface;
 using GossipCheck.BLL.Models;
@@ -32,30 +33,31 @@ namespace GossipCheck.API.Controllers
         [HttpPost("verify")]
         public async Task<IActionResult> Verify(ArticleAnalysisRequest request)
         {
-            var sourceStances = await this.stanceDetector.GetSourceStances(request.TextOrigin);
-            var reports = await this.mbfcReporting.GetReportsAsync(sourceStances.Select(x => x.Key.ToAuthorityUrl()));
-            var reportStances = reports.Join(
-                sourceStances,
-                x => x.Source.ToAuthorityUrl(),
+            var articleStances = (await this.stanceDetector.GetArticleStances(request.TextOrigin));
+            var sourceUrls = articleStances.Select(x => x.Key.ToAuthorityUrl());
+            var reports = (await this.mbfcReporting.GetReportsAsync(sourceUrls)).Join(
+                articleStances,
+                x => x.Source,
                 x => x.Key.ToAuthorityUrl(),
-                (x, y) => new KeyValuePair<MbfcReport, Stance>(x, y.Value))
+                (x, y) => x.ToRelatedArticleReport(y.Key, y.Value))
+                .Where(x => x.Factuality != FactualReporting.NA)
+                .Where(x => x.Stance != Stance.Unrelated)
                 .ToList();
 
-            var verdict = this.fakeDetectionAlgorithm.GetVerdict(reportStances);
-
-            var relatedArticles = reportStances.Join(
-                sourceStances,
-                x => x.Key.Source.ToAuthorityUrl(),
-                x => x.Key.ToAuthorityUrl(),
-                (x, y) => x.Key.ToRelatedArticle(y.Key, x.Value))
-                .OrderBy(x => x.Stance)
-                .ToList();
-
+            Verdict verdict;
+            try
+            {
+                verdict = this.fakeDetectionAlgorithm.GetVerdict(reports);
+            }
+            catch (InsufficientDataAmountException)
+            {
+                verdict = Verdict.CouldNotDetermine;
+            }
 
             return this.Ok(new ArticleAnalysisResponse
             {
                 Verdict = verdict,
-                RelatedArticles = relatedArticles
+                RelatedArticles = reports.Select(x => x.ToResponseModel())
             });
         }
     }
