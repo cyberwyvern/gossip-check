@@ -8,8 +8,7 @@ module.exports = {
       '@shared': resolvePath('./src/shared'),
       '@pages': resolvePath('./src/pages'),
       '@api': resolvePath('./src/api-client'),
-      '@stores': resolvePath('./src/stores'),
-      '@config': resolvePath('./src/config.json')
+      '@stores': resolvePath('./src/stores')
     }
   },
 }

@@ -1,8 +1,8 @@
 import { ApiClient, ErrorInterceptor, WaitingInterceptor } from '@api';
-import config from '@config';
 import { MainPageStore } from '@pages/MainPage';
 import { AlertStore } from '@shared/Alert';
 import { LoadingProgressStore } from '@shared/LoadingProgress';
+import { VerdictPopupStore } from '@shared/VerdictPopup';
 
 class RootStore {
   constructor() {
@@ -11,9 +11,10 @@ class RootStore {
     this.apiClient = ApiClient;
     this.apiClient = ErrorInterceptor(this.apiClient, this);
     this.apiClient = WaitingInterceptor(this.apiClient, this);
-    this.apiClient = this.apiClient(config.API_URL);
+    this.apiClient = this.apiClient(process.env.REACT_APP_API_URL);
 
     this.mainPageStore = new MainPageStore(this.apiClient);
+    this.verdictPopupStore = new VerdictPopupStore();
   }
 }
 

@@ -1,5 +1,5 @@
 import { makeAutoObservable, runInAction } from "mobx";
-import { response as mock } from './mockResponse';
+//import { response as mock } from './mockResponse';
 
 export default class MainPageStore {
   searchResults;
@@ -13,7 +13,7 @@ export default class MainPageStore {
     runInAction(() => this.searchResults = null);
 
     let response = await this.api.post('/gossip-check/verify', { textOrigin: urlOrClaim });
-    //let response = {data: mock};
+    //let response = { data: mock };
     runInAction(() => this.searchResults = response.data);
   }
 }

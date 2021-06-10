@@ -6,21 +6,21 @@ namespace GossipCheck.API.Extensions
 {
     public static class RelatedArticleReportMapping
     {
-        public static RelatedArticleReport ToRelatedArticle(this MbfcReport mbfcReport, string articleUrl, Stance stance)
+        public static RelatedArticleResponseModel ToResponseModel(this RelatedArticleReport report)
         {
-            return new RelatedArticleReport
+            return new RelatedArticleResponseModel
             {
-                ArticleUrl = articleUrl,
-                Stance = stance.ToString(),
-                Factuality = mbfcReport.FactualReporting.ToString(),
-                Bias = mbfcReport.BiasRating.ToString(),
-                MediaType = mbfcReport.MediaType.ToString(),
-                Popularity = mbfcReport.TrafficPopularity.ToString(),
-                MbfcCredibilityRating = mbfcReport.MbfcCredibilityRating.ToString(),
-                Reasoning = mbfcReport.Reasoning,
-                Country = mbfcReport.Country,
-                WorldPressFreedomRank = mbfcReport.WorldPressFreedomRank,
-                MbfcPageUrl = mbfcReport.PageUrl
+                ArticleUrl = report.ArticleUrl,
+                Stance = report.Stance.ToSentenceCase(),
+                Factuality = report.Factuality != FactualReporting.NA ? report.Factuality.ToSentenceCase() : default,
+                Bias = report.Bias != BiasRating.NA ? report.Bias.ToSentenceCase() : default,
+                MediaType = report.MediaType != MediaType.NA ? report.MediaType.ToSentenceCase() : default,
+                Popularity = report.Popularity != TrafficPopularity.NA ? report.Popularity.ToSentenceCase() : default,
+                MbfcCredibilityRating = report.MbfcCredibilityRating != MbfcCredibilityRating.NA ? report.MbfcCredibilityRating.ToSentenceCase() : default,
+                Reasoning = report.Reasoning,
+                Country = report.Country,
+                WorldPressFreedomRank = report.WorldPressFreedomRank,
+                MbfcPageUrl = report.MbfcPageUrl
             };
         }
     }

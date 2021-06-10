@@ -1,6 +1,6 @@
 ﻿namespace GossipCheck.API.Models
 {
-    public class RelatedArticleReport
+    public class RelatedArticleResponseModel
     {
         public string ArticleUrl { get; set; }
 

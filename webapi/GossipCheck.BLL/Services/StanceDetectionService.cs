@@ -1,4 +1,5 @@
 ﻿using GossipCheck.BLL.ConfigurationModels;
+using GossipCheck.BLL.Extensions;
 using GossipCheck.BLL.Interface;
 using GossipCheck.BLL.Models;
 using Microsoft.Extensions.Options;
@@ -23,7 +24,7 @@ namespace GossipCheck.BLL.Services
             this.client = new HttpClient();
         }
 
-        public async Task<IEnumerable<KeyValuePair<string, Stance>>> GetSourceStances(string textOrigin)
+        public async Task<IEnumerable<KeyValuePair<string, Stance>>> GetArticleStances(string textOrigin)
         {
             var keywordsResponse = await this.GetKeywords(textOrigin);
             var articlesResponse = await this.SearchArticles(new ArticleSearchRequest
@@ -34,7 +35,7 @@ namespace GossipCheck.BLL.Services
 
             var requestObject = new StanceDetectionRequest
             {
-                Headline = string.Join(' ', keywordsResponse.Keywords),
+                Headline = textOrigin.IsWebUrl() ? string.Join(' ', keywordsResponse.Keywords) : textOrigin,
                 Bodies = articlesResponse.Articles
                     .GroupBy(x => x.Link)
                     .Select(x => x.First())

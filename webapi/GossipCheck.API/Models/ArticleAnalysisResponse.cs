@@ -7,6 +7,6 @@ namespace GossipCheck.API.Models
     {
         public Verdict Verdict { get; set; }
 
-        public IEnumerable<RelatedArticleReport> RelatedArticles { get; set; }
+        public IEnumerable<RelatedArticleResponseModel> RelatedArticles { get; set; }
     }
 }
