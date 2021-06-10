@@ -10,7 +10,7 @@ WORKDIR /src
 COPY ["GossipCheck.API/GossipCheck.API.csproj", "GossipCheck.API/"]
 COPY ["GossipCheck.DAO/GossipCheck.DAO.csproj", "GossipCheck.DAO/"]
 COPY ["GossipCheck.BLL/GossipCheck.BLL.csproj", "GossipCheck.BLL/"]
-RUN dotnet restore "GossipCheck.API/GossipCheck.API.csproj" --disable-parallel
+RUN dotnet restore "GossipCheck.API/GossipCheck.API.csproj"
 COPY . .
 WORKDIR "/src/GossipCheck.API"
 RUN dotnet build "GossipCheck.API.csproj" -c Release -o /app/build
