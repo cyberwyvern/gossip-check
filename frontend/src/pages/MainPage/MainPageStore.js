@@ -12,8 +12,8 @@ export default class MainPageStore {
   async verifyArticle(urlOrClaim) {
     runInAction(() => this.searchResults = null);
 
-    let response = await this.api.post('/gossip-check/verify', { textOrigin: urlOrClaim });
-    //let response = {data: mock};
+    //let response = await this.api.post('/gossip-check/verify', { textOrigin: urlOrClaim });
+    let response = { data: mock };
     runInAction(() => this.searchResults = response.data);
   }
 }

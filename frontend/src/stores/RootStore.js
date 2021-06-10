@@ -3,6 +3,7 @@ import config from '@config';
 import { MainPageStore } from '@pages/MainPage';
 import { AlertStore } from '@shared/Alert';
 import { LoadingProgressStore } from '@shared/LoadingProgress';
+import { VerdictPopupStore } from '@shared/VerdictPopup';
 
 class RootStore {
   constructor() {
@@ -14,6 +15,7 @@ class RootStore {
     this.apiClient = this.apiClient(config.API_URL);
 
     this.mainPageStore = new MainPageStore(this.apiClient);
+    this.verdictPopupStore = new VerdictPopupStore();
   }
 }
 

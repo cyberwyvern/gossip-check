@@ -1,37 +1,26 @@
-import Backdrop from '@material-ui/core/Backdrop';
 import Button from '@material-ui/core/Button';
-import { makeStyles } from '@material-ui/core/styles';
 import TextField from '@material-ui/core/TextField';
 import SearchIcon from '@material-ui/icons/Search';
+import { VerdictPopup } from '@shared/VerdictPopup';
 import StoreContext from '@stores/StoreContext';
 import { observer } from "mobx-react";
-import { React, useContext, useState } from 'react';
+import { React, useContext } from 'react';
 import { Controller, useForm } from 'react-hook-form';
-import styles from './styles/MainPage.module.css';
-import SearchResultsTable from './SearchResultTable';
-import VerdictPopup from './VerdictPopup';
-
-const useStyles = makeStyles((theme) => ({
-  backdrop: {
-    zIndex: theme.zIndex.drawer + 1,
-  },
-}));
+import styles from './MainPage.module.css';
+import { SearchResultsTable } from './SearchResultTable';
 
 function MainPage() {
-  const classes = useStyles();
-  const store = useContext(StoreContext).mainPageStore;
-  const [backdropOpen, setBackdropOpen] = useState(false);
+  const { mainPageStore, verdictPopupStore } = useContext(StoreContext);
   const { handleSubmit, control, errors } = useForm({ mode: 'onChange' });
+
   const onSubmit = async ({ urlOrClaim }) => {
-    await store.verifyArticle(urlOrClaim);
-    setBackdropOpen(true);
+    await mainPageStore.verifyArticle(urlOrClaim);
+    verdictPopupStore.toggle(mainPageStore.searchResults.verdict);
   }
 
   return (
     <div className={styles['root']}>
-      <Backdrop className={classes.backdrop} open={backdropOpen} onClick={() => setBackdropOpen(false)}>
-        {store.searchResults && <VerdictPopup verdict={store.searchResults.verdict} />}
-      </Backdrop>
+      <VerdictPopup />
       <div className={styles['search-field']}>
         <form autoComplete="off" onSubmit={handleSubmit(onSubmit)}>
           <Controller
@@ -65,7 +54,7 @@ function MainPage() {
           </Button>
         </form>
       </div>
-      {store.searchResults && <SearchResultsTable rows={store.searchResults.relatedArticles} />}
+      {mainPageStore.searchResults && <SearchResultsTable rows={mainPageStore.searchResults.relatedArticles} />}
     </div>
   );
 }
