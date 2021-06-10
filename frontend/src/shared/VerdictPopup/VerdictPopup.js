@@ -68,14 +68,15 @@ function VerdictPopup() {
         <Box>{icon[verdict] && icon[verdict]()}</Box>
         <Typography variant="h5">{header}</Typography>
         <Typography>{text}</Typography>
-        <Button
-          className={styles['close-button']}
-          variant="contained"
-          color="secondary"
-          size="small"
-          onClick={() => toggle()}>
-          Close
-        </Button>
+        <div className={styles['close']}>
+          <Button
+            variant="contained"
+            color="secondary"
+            size="small"
+            onClick={() => toggle()}>
+            Close
+          </Button>
+        </div>
       </Paper>
     </Backdrop>
   );

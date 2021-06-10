@@ -1,4 +1,5 @@
-import Button from '@material-ui/core/Button';
+import IconButton from '@material-ui/core/IconButton';
+import InputAdornment from '@material-ui/core/InputAdornment';
 import TextField from '@material-ui/core/TextField';
 import SearchIcon from '@material-ui/icons/Search';
 import { VerdictPopup } from '@shared/VerdictPopup';
@@ -30,10 +31,18 @@ function MainPage() {
               <TextField
                 label="Input article URL or claim"
                 variant="outlined"
-                size="small"
                 error={!!errors.urlOrClaim}
                 helperText={errors.urlOrClaim && errors.urlOrClaim.message}
                 fullWidth
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton type="submit" edge="end">
+                        <SearchIcon />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
               />
             }
             defaultValue=""
@@ -45,13 +54,6 @@ function MainPage() {
               }
             }}
           />
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<SearchIcon />}
-            type="submit">
-            Search
-          </Button>
         </form>
       </div>
       {mainPageStore.searchResults && <SearchResultsTable rows={mainPageStore.searchResults.relatedArticles} />}

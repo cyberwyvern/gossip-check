@@ -41,7 +41,7 @@ function Row({ row }) {
 
   return (
     <Fragment>
-      <TableRow key={articleUrl}>
+      <TableRow>
         <TableCell>
           <IconButton aria-label="expand row" size="small" onClick={() => setOpen(!open)}>
             {open ? <KeyboardArrowUpIcon /> : <KeyboardArrowDown />}
@@ -54,7 +54,7 @@ function Row({ row }) {
           <Typography>{stance}</Typography>
         </TableCell>
       </TableRow>
-      <TableRow key={articleUrl}>
+      <TableRow>
         <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={3}>
           <Collapse in={open} timeout="auto" unmountOnExit>
             <Box p={2} pb={3}>
@@ -87,7 +87,7 @@ export default function SearchResultsTable({ rows }) {
           </TableRow>
         </TableHead>
         <TableBody>
-          {rows.map(row => <Row row={row} />)}
+          {rows.map(row => <Row key={row.articleUrl} row={row} />)}
         </TableBody>
       </Table>
     </TableContainer>

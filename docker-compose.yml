@@ -41,6 +41,9 @@ services:
   frontend: 
     image: ${CONTAINER_REGISTRY}/frontend
     container_name: frontend
+    environment:
+      env_file: .env
+      REACT_APP_API_URL: http://host.docker.internal:5003/
     ports:
       - "3000:3000"
 
