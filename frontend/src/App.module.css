@@ -1,0 +1,19 @@
+.root {
+  height: 100%;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: inherit;
+}
+
+.content {
+  flex-grow: 1;
+  display: flex;
+  overflow: inherit;
+}
+
+.page-content {
+  flex-grow: 1;
+  padding: 30px;
+  overflow: inherit;
+}

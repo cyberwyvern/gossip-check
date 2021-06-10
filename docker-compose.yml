@@ -1,0 +1,52 @@
+version: "3.9"
+services:
+
+  webscraper: 
+    image: ${CONTAINER_REGISTRY}/webscraper
+    container_name: webscraper
+    environment:
+      ArticleSearch__ApiKey: ${ARTICLE_SEARCH_APIKEY}
+      NLUService__ApiKey: ${NLU_SERVICE_APIKEY}
+    ports:
+      - "5001:80"
+
+  ai: 
+    image: ${CONTAINER_REGISTRY}/stance-detection-ai
+    container_name: stance-detection-ai
+    ports:
+      - "5002:5000"
+
+  webapi: 
+    image: ${CONTAINER_REGISTRY}/webapi
+    container_name: webapi
+    environment:
+      StanceDetector__WebScraperUrl: http://host.docker.internal:5001
+      StanceDetector__StanceDetectionAiUrl: http://host.docker.internal:5002
+      MbfcService__ServiceUrl: http://host.docker.internal:5001
+      ConnectionStrings__DBconnection: ${DB_CONNECTION}
+    ports:
+      - "5003:80"
+
+  mssql-server:
+    image: mcr.microsoft.com/mssql/server:latest
+    container_name: mssql-server
+    volumes:
+      - mssql-server-data:/var/opt/mssql
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: ${SQLSERVER_SA_PASSWORD}
+    ports:
+      - "1433:1433"
+
+  frontend: 
+    image: ${CONTAINER_REGISTRY}/frontend
+    container_name: frontend
+    environment:
+      env_file: .env
+      REACT_APP_API_URL: http://host.docker.internal:5003/
+    ports:
+      - "3000:3000"
+
+
+volumes:
+  mssql-server-data:
