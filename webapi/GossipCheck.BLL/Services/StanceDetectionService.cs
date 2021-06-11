@@ -15,6 +15,8 @@ namespace GossipCheck.BLL.Services
 {
     public class StanceDetectionService : IStanceDetectionService
     {
+        const int KeyWordsLimit = 15;
+
         private readonly StanceDetectionServiceConfig config;
         private readonly HttpClient client;
 
@@ -33,10 +35,13 @@ namespace GossipCheck.BLL.Services
                 Keywords = keywordsResponse.Keywords
             });
 
+            var isUrl = textOrigin.IsWebUrl();
+            var baseUrl = isUrl ? textOrigin.ToAuthorityUrl() : default;
             var requestObject = new StanceDetectionRequest
             {
-                Headline = textOrigin.IsWebUrl() ? string.Join(' ', keywordsResponse.Keywords) : textOrigin,
+                Headline = string.Join(' ', keywordsResponse.Keywords),
                 Bodies = articlesResponse.Articles
+                    .Where(x => !isUrl || !x.Link.StartsWith(baseUrl))
                     .GroupBy(x => x.Link)
                     .Select(x => x.First())
                     .ToDictionary(x => x.Link, x => x.Summary)
@@ -66,7 +71,7 @@ namespace GossipCheck.BLL.Services
 
         private async Task<KeywordsExtractionResponse> GetKeywords(string textOrigin)
         {
-            var requestObj = new KeywordsExtractionRequest { TextOrigin = textOrigin };
+            var requestObj = new KeywordsExtractionRequest { TextOrigin = textOrigin, Limit = KeyWordsLimit };
             var request = new HttpRequestMessage
             {
                 Method = HttpMethod.Post,

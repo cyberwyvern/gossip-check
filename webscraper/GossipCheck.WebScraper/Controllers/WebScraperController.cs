@@ -24,7 +24,7 @@ namespace GossipCheck.WebScraper.Controllers
         [HttpPost("extract-keywords")]
         public IActionResult ExtractKeywords(KeywordsExtractionRequest request)
         {
-            var keywords = this.nLUService.ExtractKeywords(request.TextOrigin, out var language);
+            var keywords = this.nLUService.ExtractKeywords(request.TextOrigin, request.Limit, out var language);
 
             return this.Ok(new KeywordsExtractionResponse
             {

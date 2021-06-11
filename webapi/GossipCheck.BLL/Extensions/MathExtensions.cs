@@ -10,6 +10,7 @@ namespace GossipCheck.BLL.Extensions
         {
             var exp = values.Select(Math.Exp);
             var sumExp = exp.Sum();
+
             return exp.Select(i => i / sumExp);
         }
     }

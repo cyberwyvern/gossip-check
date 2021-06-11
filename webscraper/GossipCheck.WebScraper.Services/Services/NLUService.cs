@@ -6,13 +6,13 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace GossipCheck.WebScraper.Services.Services
 {
     public class NLUService : INLUService
     {
         private const string ApiVersion = "2019-07-12";
-        private const int KeyWordsLimit = 8;
 
         private readonly NLUServiceConfig config;
         private readonly NaturalLanguageUnderstandingService watson;
@@ -26,7 +26,7 @@ namespace GossipCheck.WebScraper.Services.Services
             this.watson.SetServiceUrl(this.config.ServiceUrl);
         }
 
-        public IEnumerable<string> ExtractKeywords(string textOrUrl, out Language language)
+        public IEnumerable<string> ExtractKeywords(string textOrUrl, int limit, out Language language)
         {
             var features = new Features
             {
@@ -34,7 +34,7 @@ namespace GossipCheck.WebScraper.Services.Services
                 {
                     Emotion = false,
                     Sentiment = false,
-                    Limit = KeyWordsLimit
+                    Limit = limit
                 }
             };
 
@@ -45,7 +45,11 @@ namespace GossipCheck.WebScraper.Services.Services
             if (LanguageCodes.Codes.ContainsValue(result.Result.Language))
             {
                 language = LanguageCodes.Codes.First(x => x.Value == result.Result.Language).Key;
-                var keywords = result.Result.Keywords.Select(x => x.Text).ToArray();
+
+                var totalWords = Regex.Split(textOrUrl, @"\s+");
+                var keywords = textOrUrl.IsWebUrl() || totalWords.Length >= limit
+                    ? result.Result.Keywords.Select(x => x.Text).ToArray()
+                    : totalWords;
 
                 return keywords;
             }

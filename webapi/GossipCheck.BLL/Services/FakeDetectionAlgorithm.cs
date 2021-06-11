@@ -14,7 +14,6 @@ namespace GossipCheck.BLL.Services
         {
             [Stance.Agree] = 1,
             [Stance.Disagree] = -1,
-            [Stance.Unrelated] = 0,
             [Stance.Discuss] = .25
         };
 
@@ -22,12 +21,12 @@ namespace GossipCheck.BLL.Services
         //x: 0, 1, 2, 3, 4, 5
         private readonly Dictionary<FactualReporting, double> reputationScores = new Dictionary<FactualReporting, double>
         {
-            [FactualReporting.VeryHigh] = 9.241,
-            [FactualReporting.High] = 8.176,
-            [FactualReporting.MostlyFactual] = 6.225,
-            [FactualReporting.Mixed] = 3.775,
-            [FactualReporting.Low] = 1.824,
-            [FactualReporting.VeryLow] = .759,
+            [FactualReporting.VeryHigh] = .9241,
+            [FactualReporting.High] = .8176,
+            [FactualReporting.MostlyFactual] = .6225,
+            [FactualReporting.Mixed] = .3775,
+            [FactualReporting.Low] = .1824,
+            [FactualReporting.VeryLow] = .0759,
         };
 
         //sigmoid: 1/(1+e^-((x-1.5)))
@@ -48,14 +47,15 @@ namespace GossipCheck.BLL.Services
                 .Where(x => x.Stance != Stance.Unrelated)
                 .ToList();
 
-            if (!significantEntries.Any(x => x.Factuality == FactualReporting.High))
+            if (significantEntries.Count() < 3)
             {
                 throw new InsufficientDataAmountException();
             }
 
-            var score = significantEntries.Select(x => this.reputationScores[x.Factuality])
+            var score = significantEntries
+                .Select(x => this.reputationScores[x.Factuality])
                 .Softmax()
-                .Zip(significantEntries, (reputation, report) => reputation * this.stanceFactor[report.Stance])
+                .Zip(significantEntries, (weight, report) => weight * reputationScores[report.Factuality] * this.stanceFactor[report.Stance])
                 .Sum() + 1 / 2;
 
             return this.verdictMinimalScores

@@ -3,5 +3,7 @@
     internal class KeywordsExtractionRequest
     {
         public string TextOrigin { get; set; }
+
+        public int Limit { get; set; }
     }
 }
