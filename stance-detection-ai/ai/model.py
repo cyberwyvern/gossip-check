@@ -2,7 +2,7 @@ import pickle
 
 import numpy as np
 from tensorflow.keras.callbacks import ModelCheckpoint
-from tensorflow.keras.layers import Dense, Dropout, InputLayer, Softmax
+from tensorflow.keras.layers import Dense, Dropout, Input, Softmax
 from tensorflow.keras.losses import SparseCategoricalCrossentropy
 from tensorflow.keras.models import Sequential
 from tensorflow.keras.utils import plot_model
@@ -34,9 +34,10 @@ def train():
     feature_size = len(train_set[0])
 
     model = Sequential([
-        InputLayer(input_shape=[feature_size, ]),
+        Input(shape=[feature_size, ]),
         Dropout(.25),
         Dense(100, activation='relu'),
+        Dropout(.25),
         Dense(4),
         Softmax()
     ])
